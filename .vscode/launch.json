@@ -1,0 +1,71 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Debug qbit2track info",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "qbit2track.cli",
+            "args": ["info"],
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}",
+            "env": {"PYTHONPATH": "${workspaceFolder}"},
+            "justMyCode": false
+        },
+        {
+            "name": "Debug qbit2track extract (dry run)",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "qbit2track.cli",
+            "args": ["extract", "--dry-run"],
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}",
+            "env": {"PYTHONPATH": "${workspaceFolder}"},
+            "justMyCode": false
+        },
+        {
+            "name": "Debug qbit2track extract (single torrent)",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "qbit2track.cli",
+            "args": ["extract", "--dry-run", "--filter-tags", "test"],
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}",
+            "env": {"PYTHONPATH": "${workspaceFolder}"},
+            "justMyCode": false
+        },
+        {
+            "name": "Debug TMDB matching only",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "qbit2track.debug_tools",
+            "args": ["test_tmdb"],
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}",
+            "env": {"PYTHONPATH": "${workspaceFolder}"},
+            "justMyCode": false
+        },
+        {
+            "name": "Debug torrent creation only",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "qbit2track.debug_tools",
+            "args": ["test_torrent"],
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}",
+            "env": {"PYTHONPATH": "${workspaceFolder}"},
+            "justMyCode": false
+        },
+        {
+            "name": "Debug media analyzer only",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "qbit2track.debug_tools",
+            "args": ["test_analyzer", "Andor S01E05 1080p"],
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}",
+            "env": {"PYTHONPATH": "${workspaceFolder}"},
+            "justMyCode": false
+        }
+    ]
+}

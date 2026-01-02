@@ -1,0 +1,40 @@
+# API Configuration Template for Mass Upload
+# This file defines how to interact with different tracker APIs
+
+api_configs:
+  # Example tracker configuration
+  example_tracker:
+    base_url: "https://tracker.example.com/api"
+    headers:
+      "User-Agent": "qbit2track/1.0"
+      "Content-Type": "application/json"
+    auth:
+      type: "api_key"  # Options: api_key, basic, bearer, none
+      api_key: "your_api_key_here"
+    endpoints:
+      upload: "/upload"
+      search: "/search"
+      status: "/status/{upload_id}"
+    rate_limit:
+      requests_per_minute: 30
+      burst_size: 5
+    retry:
+      max_attempts: 3
+      backoff_factor: 2
+    timeout: 30
+
+  # Another example with different auth
+  another_tracker:
+    base_url: "https://another-tracker.com/api/v1"
+    headers:
+      "User-Agent": "qbit2track/1.0"
+    auth:
+      type: "basic"
+      username: "your_username"
+      password: "your_password"
+    endpoints:
+      upload: "/torrents/upload"
+      search: "/torrents/search"
+    rate_limit:
+      requests_per_minute: 60
+    timeout: 45
