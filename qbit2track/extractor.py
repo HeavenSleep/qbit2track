@@ -822,6 +822,11 @@ class TorrentExtractor:
         """Create new torrent file from existing data"""
         torrent_path = Path(torrent_data.content_path)
         
+        def progress_callback(torrent, filepath, pieces_done, pieces_total):
+            """Callback to show torrent generation progress"""
+            progress = (pieces_done / pieces_total) * 100
+            logger.info(f"Generating torrent: {progress:.1f}% - {pieces_done}/{pieces_total} pieces")
+        
         # Create new torrent
         torrent = torf.Torrent(
             path=torrent_path,
@@ -839,10 +844,11 @@ class TorrentExtractor:
             torrent.trackers = [torrent_data.tracker]
                 
         torrent_file = output_dir / f"{self._sanitize_filename(torrent_data.name)}.torrent"
-        torrent.generate(callback=torf.CLI_CALLBACK(), interval=5)
+        logger.info(f"Creating torrent file: {torrent_file}")
+        torrent.generate(callback=progress_callback, interval=1)
         torrent.write(torrent_file)
         
-        logger.debug(f"Created torrent: {torrent_file}")
+        logger.info(f"Created torrent: {torrent_file}")
     
     def _save_metadata(self, torrent_data: TorrentData, output_dir: Path, tmdb_data: Optional[Dict]):
         """Save complete metadata as JSON"""
