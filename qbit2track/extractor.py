@@ -772,7 +772,7 @@ class TorrentExtractor:
             category=torrent.category,
             media_info=media_info,
             comment=torrent.comment,
-            created_by=torrent.created_by,
+            created_by=torrent.metadata['created_by'] if 'created_by' in torrent.metadata.keys() else 'qbit2track',
             created_at=datetime.now(),
         )
         
