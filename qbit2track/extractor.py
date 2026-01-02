@@ -92,6 +92,8 @@ class TorrentData:
     tracker: List[str]
     tags: List[str]
     category: str
+    created_by: str
+    created_at: datetime
     media_info: MediaInfo
     comment: Optional[str] = None
 
@@ -769,7 +771,9 @@ class TorrentExtractor:
             tags=torrent.tags.split(', ') if torrent.tags else [],
             category=torrent.category,
             media_info=media_info,
-            comment=torrent.comment
+            comment=torrent.comment,
+            created_by=torrent.created_by,
+            created_at=datetime.now(),
         )
         
         # Apply updates if specified
