@@ -1,22 +1,37 @@
-"""
-Torrent extraction functionality for qbit2track
-"""
-
-import logging
-import re
 import json
+import logging
 import hashlib
-from pathlib import Path
-from typing import Dict, List, Optional, Any, Tuple
-from dataclasses import dataclass
+import re
 import time
 from datetime import datetime
+from pathlib import Path
+from typing import Dict, List, Optional, Any, Tuple
+from dataclasses import dataclass, asdict
 
 import torf
 from qbittorrentapi import Client
 from tmdbv3api import TMDb, Movie, TV, Search
 
 from .config import Config
+
+
+class DateTimeEncoder(json.JSONEncoder):
+    """Custom JSON encoder for datetime objects"""
+    def default(self, obj):
+        if isinstance(obj, datetime):
+            return obj.isoformat()
+        return super().default(obj)
+
+
+def datetime_decoder(obj):
+    """Custom JSON decoder for datetime objects"""
+    for key, value in obj.items():
+        if key == 'created_at' and isinstance(value, str):
+            try:
+                obj[key] = datetime.fromisoformat(value)
+            except ValueError:
+                pass  # Keep original value if parsing fails
+    return obj
 
 
 logger = logging.getLogger(__name__)
@@ -877,9 +892,15 @@ class TorrentExtractor:
         
         metadata_file = output_dir / "metadata.json"
         with open(metadata_file, 'w', encoding='utf-8') as f:
-            json.dump(metadata, f, indent=2, ensure_ascii=False)
+            json.dump(metadata, f, indent=2, cls=DateTimeEncoder, ensure_ascii=False)
         
         logger.debug(f"Saved metadata: {metadata_file}")
+    
+    def _load_metadata(self, metadata_file: Path) -> Dict:
+        """Load metadata from JSON file with datetime decoding"""
+        with open(metadata_file, 'r', encoding='utf-8') as f:
+            # Use object_hook to decode datetime strings
+            return json.load(f, object_hook=datetime_decoder)
     
     def _generate_nfo_content(self, torrent_data: TorrentData, tmdb_data: Optional[Dict]) -> str:
         """Generate NFO file content"""
