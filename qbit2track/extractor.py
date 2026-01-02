@@ -722,6 +722,7 @@ class TorrentExtractor:
         
         for torrent in torrents:
             try:
+                logger.info(f"[{results['success'] + 1}/{results['failed']}/{results['total']}] Processing: {torrent.name}")
                 self._extract_single_torrent(
                     torrent, 
                     dry_run=dry_run,
