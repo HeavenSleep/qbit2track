@@ -833,10 +833,13 @@ class TorrentExtractor:
         )
         
         # Add trackers
-        for tracker in torrent_data.tracker:
-            if tracker.url.startswith(('http://', 'https://')):
-                torrent.trackers.add(tracker.url)
-        
+        if type(torrent_data.tracker) == list:
+            for tracker in torrent_data.tracker:
+                if tracker.startswith(('http://', 'https://')):
+                    torrent.trackers.add(tracker)
+        elif type(torrent_data.tracker) == str:
+            torrent.trackers.add(torrent_data.tracker)
+                
         torrent_file = output_dir / f"{self._sanitize_filename(torrent_data.name)}.torrent"
         torrent.generate(callback=torf.CLI_CALLBACK(), interval=5)
         torrent.write(torrent_file)
