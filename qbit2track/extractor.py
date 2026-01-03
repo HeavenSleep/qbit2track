@@ -161,38 +161,6 @@ class TorrentExtractor:
         
         # Save metadata JSON
         self.metadata_manager.save_metadata(torrent_data, output_dir, tmdb_data)
-        
-        # Update torrent in qBittorrent if any updates were applied
-        if any([update_tracker, update_comment, update_tags, update_category]):
-            self._update_torrent_in_qbittorrent(torrent, torrent_data, update_tracker, update_comment, update_tags, update_category)
-    
-    def _update_torrent_in_qbittorrent(self, torrent, torrent_data: TorrentData,
-                                       update_tracker: Optional[str],
-                                       update_comment: Optional[str],
-                                       update_tags: Optional[str],
-                                       update_category: Optional[str]):
-        """Update torrent metadata in qBittorrent"""
-        try:
-            # Update tracker
-            if update_tracker:
-                self.client.torrents.set_tracker(hashes=[torrent.hash], urls=[update_tracker])
-            
-            # Update comment
-            if update_comment:
-                self.client.torrents.set_comment(hashes=[torrent.hash], comment=update_comment)
-            
-            # Update tags
-            if update_tags:
-                self.client.torrents.change_tag(hashes=[torrent.hash], tags=', '.join(torrent_data.tags))
-            
-            # Update category
-            if update_category:
-                self.client.torrents.set_category(hashes=[torrent.hash], category=update_category)
-            
-            logger.info(f"Updated torrent metadata in qBittorrent: {torrent.name}")
-            
-        except Exception as e:
-            logger.error(f"Failed to update torrent {torrent.name}: {e}")
     
     def _sanitize_filename(self, filename: str) -> str:
         """Sanitize filename for filesystem"""
