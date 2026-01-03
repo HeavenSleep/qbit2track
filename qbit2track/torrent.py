@@ -52,7 +52,8 @@ class TorrentManager:
                 progress = (pieces_done / pieces_total) * 100
                 bar.update(progress)
             
-            torrent.generate(output=torrent_file, callback=progress_callback, interval=1)
+            torrent.generate(callback=progress_callback, interval=1)
+            torrent.write(torrent_file)
 
         logger.info(f"Created torrent: {torrent_file}")
     
