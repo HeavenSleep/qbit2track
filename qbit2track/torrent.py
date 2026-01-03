@@ -53,9 +53,9 @@ class TorrentManager:
             
             def progress_callback(torrent, filepath, pieces_done, pieces_total):
                 progress = int((pieces_done / pieces_total) * 90)
+                nonlocal current_progress
                 if progress > current_progress:
                     bar.update(progress - current_progress)
-                    nonlocal current_progress
                     current_progress = progress
             
             # Generation phase (0-90%)
