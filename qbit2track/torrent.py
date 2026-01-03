@@ -61,6 +61,7 @@ class TorrentManager:
             bar.update(85)  # Show we're starting to write
             torrent.write(torrent_file)
             bar.update(100)  # Complete
+            print("", flush=True, newline=False)
 
         logger.info(f"Created torrent: {torrent_file}")
     
