@@ -19,6 +19,7 @@ class FileAnalyzer:
     
     def __init__(self):
         self.available = FFMPEG_AVAILABLE
+        logger.info(f"FFmpeg available: {self.available}")
     
     def analyze_file(self, file_path: Path) -> Dict[str, Any]:
         """Analyze a media file and extract technical information"""
