@@ -48,20 +48,28 @@ class TorrentManager:
         
         # Generate torrent with progress bar
         with click.progressbar(length=100, label='Creating torrent') as bar:
+            # Track current progress to avoid overshooting
+            current_progress = 0
+            
             def progress_callback(torrent, filepath, pieces_done, pieces_total):
-                # Update progress for generation phase (0-80%)
-                progress = (pieces_done / pieces_total) * 80  # Leave 20% for writing
-                bar.update(int(progress))
+                progress = int((pieces_done / pieces_total) * 90)
+                if progress > current_progress:
+                    bar.update(progress - current_progress)
+                    nonlocal current_progress
+                    current_progress = progress
             
-            # Generation phase (0-80%)
+            # Generation phase (0-90%)
             torrent.generate(callback=progress_callback, interval=1)
-            bar.update(80)
+
+            # Finish hashing portion
+            if current_progress < 90:
+                bar.update(90 - current_progress)
+                current_progress = 90
             
-            # Writing phase (80-100%)
-            bar.update(85)  # Show we're starting to write
+            # Writing phase (90-100%)
+            bar.update(5)  # Show we're starting to write
             torrent.write(torrent_file)
-            bar.update(100)  # Complete
-            print("", flush=True, end="")
+            bar.update(5)  # Complete
 
         logger.info(f"Created torrent: {torrent_file}")
     
