@@ -22,7 +22,7 @@ class FilenameAnalyzer:
     ]
 
     HDR_PATTERNS = [
-        r'(10bit|12bit|HDR10Plus|HDR10\+|HDR10|HDR2100|HDR|Dolby Vision|DV\+|DV|HLG)'
+        r'(10bit|12bit|HDR10Plus|HDR10\+|HDR10|HDR2100|HDR|Dolby\W?Vision|DV\+|DV|HLG)'
     ]
     
     VIDEO_CODEC_PATTERNS = [
@@ -38,19 +38,22 @@ class FilenameAnalyzer:
     ]
 
     TEAM_PATTERNS = [
-        r'\W(\w+)\.\w{3}$',
-        r'\W(\w+)$',
-        r'\((\w+)\)\.\w{3}$',
-        r'\[(\w+)\]$',
-        r'(Tsundere-Raws) \(CR\)'
+        r'\W(\w{2,8})\W\(\w+\W*\)\.\w{3}$',  # Team name before year, limit to 2-8 chars
+        r'\W(\w{2,8})\W\(\w+\W*\)$',  # Team name before year, no extension
+        r'\W(\w{2,8})\.\w{3}$',  # Team name at end, limit to 2-8 chars
+        r'\W(\w{2,8})$',  # Team name at end, no extension
+        r'\((\w{2,8})\)\.\w{3}$',  # Team name in parentheses
+        r'\[(\w{2,8})\]$',  # Team name in brackets
+        r'(Tsundere-Raws) \(CR\)',  # Specific known team
+        r'(Tsundere-Raws)',  # Specific known team
     ]
 
     PLATFORM_PATTERNS = [
-        r'\W(HMAX|Netflix|Amazon|Disney\+|Apple TV\+|Apple TV|YouTube|Orange|Vimeo|Crunchyroll|Funimation|HBO Max|Disney Plus|Hulu Plus|HBO GO|HBO|Hulu|Disney)\W'
+        r'\W(HMAX|Netflix|NF|Amazon|Disney\+|Apple TV\+|Apple TV|YouTube|Orange|Vimeo|Crunchyroll|Funimation|HBO Max|Disney Plus|Hulu Plus|HBO GO|HBO|Hulu|Disney)\W'
     ]
 
     SPECIAL_VERSION_PATTERNS = [
-        r'\W(Extended|Extended Version|Extended Edition|Directors Cut|Final|Proper|Internal|Fansub|Hybrid|DC|Director\'s Cut|Custom|Unrated|Unrated Version|\w{3-5}logie|Complet)'
+        r'\W(Extended|Extended Version|Extended Edition|Directors Cut|Final|Proper|Internal|Fansub|Hybrid|DC|Director\'s Cut|Custom|Unrated|Unrated Version|\w{3,5}logie|Complet|Repack|Reapck|Remux|Integrale|Collection|Saga)'
     ]
 
     TRASH_PATTERNS = [
@@ -58,33 +61,56 @@ class FilenameAnalyzer:
         r'\WSUBFORCED\W'
     ]
     
-    # Language codes - more specific patterns to avoid false positives
+    # Language patterns - organized by language for better control
+    LANGUAGE_PATTERNS = {
+        "French": [
+            r'\Wtruefrench\W',
+            r'\Wfrench\W',
+            r'\Wvff\W',
+            r'\Wvfi\W',
+            r'\Wvfq\W',
+            r'\Wvf2\W',
+            r'\Wvf\W',
+            r'\Wvof\W',
+            r'\Wvo\W',
+            r'\Wvostfr\W',
+            r'\Wfr\W'
+        ],
+        "English": [
+            r'\Wen\W',
+            r'\Weng\W',
+        ],
+        "Spanish": [
+            r'\Wes\W',
+        ],
+        "German": [
+            r'\Wde\W',
+            r'\Wgerman\W',
+            r'\Wdeu\W',
+            r'\Wger\W',
+        ],
+        "Italian": [
+            r'\Wit\W',
+            r'\Wita\W',
+        ],
+        "Portuguese": [
+            r'\Wpt\W',
+        ],
+        "Russian": [
+            r'\Wru\W',
+        ],
+        "Japanese": [
+            r'\Wja\W',
+        ],
+        "Chinese": [
+            r'\Wzh\W',
+        ],
+        "Korean": [
+            r'\Wko\W',
+        ],
+    }
+
     LANGUAGES = {
-        r'\Wen\W': 'English', 
-        r'\Weng\W': 'English', 
-        r'\Wes\W': 'Spanish', 
-        r'\Wtruefrench\W': 'French', 
-        r'\Wfrench\W': 'French', 
-        r'\Wvff\W': 'French', 
-        r'\Wvfi\W': 'French', 
-        r'\Wvfq\W': 'French', 
-        r'\Wvf\W': 'French', 
-        r'\Wfr\W': 'French',
-        r'\Wde\W': 'German',
-        r'\Wgerman\W': 'German',
-        r'\Wdeu\W': 'German',
-        r'\Wger\W': 'German',
-        r'\Wit\W': 'Italian',
-        r'\Wita\W': 'Italian',
-        r'\Wpt\W': 'Portuguese',
-        r'\Wpor\W': 'Portuguese',
-        r'\Wru\W': 'Russian',
-        r'\Wrus\W': 'Russian',
-        r'\Wja\W': 'Japanese',
-        r'\Wjpn\W': 'Japanese',
-        r'\Wzh\W': 'Chinese',
-        r'\Wchi\W': 'Chinese',
-        r'\Wko\W': 'Korean', 
         r'\War\W': 'Arabic', 
         r'\Whi\W': 'Hindi', 
         r'\Wno\W': 'Norwegian',
@@ -164,7 +190,7 @@ class FilenameAnalyzer:
                 media_info.source = match.group(1).upper().rstrip()
                 break
         
-        # Extract year
+        # Extract year (before cleaning so we don't lose it)
         year_match = re.search(r'\b(19|20)\d{2}\b', filename)
         if year_match:
             media_info.year = int(year_match.group())
@@ -260,42 +286,57 @@ class FilenameAnalyzer:
     
     def _extract_season_episode(self, filename: str) -> Tuple[Optional[int], Optional[int]]:
         """Extract season and episode numbers from filename"""
-        # Pattern for S01E01 format
-        match = re.search(r'[Ss](\d{1,2})[Ee](\d{1,2})', filename)
+        # Pattern for episodes
+        episode_patterns = [
+            r'[Ss](\d{1,2})[Ee](\d{1,2})',
+            r'[Ss](\d{1,2})[Ee](\d{1,2})',
+            r'(\d{1,2})x(\d{1,2})',
+            r'S(\d{1,2})-(\d{1,2})',
+        ]
+        for pattern in episode_patterns:
+            match = re.search(pattern, filename)
+            if match:
+                return int(match.group(1)), int(match.group(2))
+
+        episode_range_pattern = r'\b(\d{1,3})-(\d{1,3})\b'
+        match = re.search(episode_range_pattern, filename)
         if match:
-            return int(match.group(1)), int(match.group(2))
-        
-        # Pattern for 1x01 format
-        match = re.search(r'(\d{1,2})x(\d{1,2})', filename)
-        if match:
-            return int(match.group(1)), int(match.group(2))
-        
+            return 1, int(match.group(2))
+
         # Pattern for full season
-        match = re.search(r'[Ss]eason\s*(\d{1,2})', filename)
-        if match:
-            return int(match.group(1)), None
+        full_season_patterns = [
+            r'[Ss]aison\s*(\d{1,2})',
+            r'[Ss]eason\s*(\d{1,2})',
+            r'[Ss](\d{1,2})'
+        ]
+        for pattern in full_season_patterns:
+            match = re.search(pattern, filename)
+            if match:
+                return int(match.group(1)), None
         
         return None, None
     
     def _extract_languages(self, filename: str) -> Tuple[List[str], bool]:
         """Extract languages from filename"""
         languages = []
-        is_multi = False
         
-        # Check subtitle languages first
-        for sub_pattern, lang in self.SUBTITLE_LANGUAGES.items():
-            if sub_pattern.lower() in filename:
-                languages.append(lang)
+        # Check language patterns
+        for language_name, patterns in self.LANGUAGE_PATTERNS.items():
+            for pattern in patterns:
+                if re.search(pattern, filename, flags=re.IGNORECASE):
+                    if language_name not in languages:
+                        languages.append(language_name)
         
-        # Check audio languages
+        # Check legacy patterns for other languages
         for pattern, lang in self.LANGUAGES.items():
-            if re.search(pattern, filename, re.IGNORECASE):
+            if pattern == r'\Wmulti\W':
+                continue  # Skip multi, handled separately
+            if re.search(pattern, filename, flags=re.IGNORECASE):
                 if lang not in languages:
                     languages.append(lang)
         
         # Check for multi-language
-        if Config.from_env().app.multi_language.lower() in filename.lower():
-            is_multi = True
+        is_multi = bool(re.search(r'\W(multi|mult[i|í])\W', filename, flags=re.IGNORECASE))
         
         return languages, is_multi
     
@@ -312,35 +353,95 @@ class FilenameAnalyzer:
     def _clean_title(self, filename: str, media_info: MediaInfo) -> str:
         """Clean title by removing technical information"""
         title = Path(filename).stem
-        
+
+        # Handle no extension case
+        if len(title) + 4 < len(filename):
+            title = filename
+
+        # Remove year brackets
+        if media_info.year:
+            title = re.sub(r'\(\d{4}\)', str(media_info.year), title)
+
         # Remove patterns
         patterns_to_remove = [
             r'\[.*?\]',  # Remove brackets
             r'\(.*?\)',  # Remove parentheses
             r'\{.*?\}',  # Remove braces
         ]
-        
+
         for pattern in patterns_to_remove:
             title = re.sub(pattern, '', title)
-        
-        # Remove technical terms
-        technical_terms = [
-            media_info.resolution or '',
-            media_info.video_codec or '',
-            media_info.audio_codec or '',
-            media_info.hdr or '',
-            media_info.source or '',
-            media_info.platform or '',
-            media_info.version or '',
-            media_info.team or '',
+
+        #Split title on year
+        if media_info.year:
+            title = title.split(str(media_info.year))[0]
+
+        # Remove common patterns that were working - but only for detected languages
+        common_patterns = [
+            r'\b(multi|mult[i|í])\b',
+            r'\b(1080p|720p|2160p|4klight|4k|480p|uhd|hdlight|fhd|mhd|hd)\b',
+            r'\b(web|webrip|web-dl|bdrip|bluray)\b',
+            r'\b(x264|x265|h264|h265|hevc)\b',
+            r'\b(aac|ac3|ddp|dts|mp3|flac)\b',
+            r'\b(5\.1|7\.1|2\.0|atmos|truehd)\b',
+            r'\b(hdr10|hdr|dv|dolby\s*vision)\b',
+            r'\b(10bit)\b',
         ]
         
-        for term in technical_terms:
-            if term:
-                title = title.replace(term.lower(), '')
+        for pattern in common_patterns:
+            match = re.search(pattern, title, flags=re.IGNORECASE)
+            if match:
+                title = title[:match.start()]
+
+        # Remove all defined patterns - but only remove language patterns if detected
+        all_patterns = self.AUDIO_CODEC_PATTERNS + self.FILE_SOURCE_PATTERNS + self.HDR_PATTERNS + self.PLATFORM_PATTERNS + self.SPECIAL_VERSION_PATTERNS + self.TEAM_PATTERNS + self.TRASH_PATTERNS
         
+        # Add language patterns only if languages are detected
+        detected_languages_lower = [lang.lower() for lang in media_info.languages]
+        for language_name, patterns in self.LANGUAGE_PATTERNS.items():
+            if language_name.lower() in detected_languages_lower:
+                all_patterns.extend(patterns)
+        
+        # Add legacy language patterns if detected
+        for pattern, lang in self.LANGUAGES.items():
+            if pattern == r'\Wmulti\W':
+                continue  # Skip multi, handled separately
+            if lang.lower() in detected_languages_lower:
+                all_patterns.append(pattern)
+
+        for pattern in all_patterns:
+            match = re.search(pattern, title, flags=re.IGNORECASE)
+            if match:
+                title = title[:match.start()]
+        
+        # For TV shows, remove season/episode
+        tvshow_patterns = [
+            r'\bS\d{1,2}E\d{1,2}\b',
+            r'\bS\d{1,2}\b',
+            r'\bE\d{1,2}\b',
+            r'\bE\d{1,2}-\d{1,2}\b', # Handle double episodes
+            r'\bS\d{1,3}-\d{1,3}\b', # Handle ranges like S1-2
+            r'\b\d{1,3}-\d{1,3}\b', # Handle ranges like 71-78
+            r'[Ss]aison\s*\d{1,2}'
+        ]
+        if media_info.type in ["tvshow", "anime"]:
+            for pattern in tvshow_patterns:
+                title = re.sub(pattern, '', title, flags=re.IGNORECASE)
+
         # Remove separators and clean up
         title = re.sub(r'[._\-\+]', ' ', title)
         title = re.sub(r'\s+', ' ', title)
+
+        clean_title = title.strip().title()
         
-        return title.strip().title()
+        return clean_title
+    
+    def _extract_subtitles(self, filename: str) -> List[str]:
+        """Extract subtitle languages from filename"""
+        subtitles = []
+        
+        for sub_pattern, lang in self.SUBTITLE_LANGUAGES.items():
+            if sub_pattern.lower() in filename:
+                subtitles.append(lang)
+        
+        return subtitles

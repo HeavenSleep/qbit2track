@@ -7,6 +7,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Dict, Optional
 
+import click
 import torf
 
 from .models import TorrentData
@@ -26,11 +27,6 @@ class TorrentManager:
         """Create new torrent file from existing data"""
         torrent_path = Path(torrent_data.content_path)
 
-        def progress_callback(torrent, filepath, pieces_done, pieces_total):
-            """Callback to show torrent generation progress"""
-            progress = (pieces_done / pieces_total) * 100
-            logger.info(f"Generating torrent: {progress:.1f}% - {pieces_done}/{pieces_total} pieces")
-
         # Create new torrent
         torrent = torf.Torrent(
             path=torrent_path,
@@ -49,8 +45,14 @@ class TorrentManager:
 
         torrent_file = output_dir / f"{self._sanitize_filename(torrent_data.name)}.torrent"
         logger.info(f"Creating torrent file: {torrent_file}")
-        torrent.generate(callback=progress_callback, interval=1)
-        torrent.write(torrent_file)
+        
+        # Generate torrent with progress bar
+        with click.progressbar(length=100, label='Generating torrent') as bar:
+            def progress_callback(torrent, filepath, pieces_done, pieces_total):
+                progress = (pieces_done / pieces_total) * 100
+                bar.update(progress)
+            
+            torrent.generate(output=torrent_file, callback=progress_callback, interval=1)
 
         logger.info(f"Created torrent: {torrent_file}")
     

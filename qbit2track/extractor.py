@@ -39,6 +39,8 @@ class TorrentExtractor:
         self.nfo_generator = NFOGenerator()
     
     def extract_all(self, dry_run: bool = False,
+                   tags: Optional[List[str]] = None,
+                   category: Optional[str] = None,
                    update_tracker: Optional[str] = None,
                    update_comment: Optional[str] = None,
                    update_tags: Optional[str] = None,
@@ -50,8 +52,28 @@ class TorrentExtractor:
             torrents = self.client.torrents.info()
             logger.info(f"Found {len(torrents)} torrents to process")
             
+            # Apply filters if specified
+            if tags or category:
+                filtered_torrents = []
+                for torrent in torrents:
+                    # Filter by tags
+                    if tags:
+                        torrent_tags = torrent.tags.lower().split(', ') if torrent.tags else []
+                        if not any(tag.lower() in torrent_tags for tag in tags):
+                            continue
+                    
+                    # Filter by category
+                    if category and torrent.category.lower() != category.lower():
+                        continue
+                    
+                    filtered_torrents.append(torrent)
+                
+                torrents = filtered_torrents
+                logger.info(f"Filtered to {len(torrents)} torrents")
+            
             for torrent in torrents:
                 try:
+                    logger.info(f"[{results['success'] + 1} / {results['failed']} / {len(torrents)}] Processing: {torrent.name}")
                     self._extract_single_torrent(
                         torrent, dry_run, update_tracker, update_comment, update_tags, update_category
                     )

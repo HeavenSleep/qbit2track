@@ -2,6 +2,7 @@
 Command line interface for qbit2track
 """
 
+import os
 import click
 import logging
 from pathlib import Path
@@ -68,7 +69,9 @@ def extract(ctx, output_dir: Optional[str], filter_tags: Optional[str], filter_c
             update_category=update_category
         )
         
-        click.echo(f"Extraction complete. Processed {results['total']} torrents.")
+        # Insert full width separator line without wrapping
+        click.echo("=" * os.get_terminal_size().columns)
+        click.echo(f"Extraction complete. Processed {results['success'] + results['failed']} torrents.")
         click.echo(f"Success: {results['success']}, Failed: {results['failed']}")
         
         # Show update summary if any updates were applied
@@ -122,6 +125,7 @@ def upload(ctx, api_config: str, tracker: Optional[str],
             dry_run=dry_run
         )
         
+        click.echo("=" * os.get_terminal_size().columns)
         click.echo(f"Upload complete. Processed {results['total']} torrents.")
         click.echo(f"Success: {results['success']}, Failed: {results['failed']}")
         
