@@ -6,12 +6,34 @@ A powerful Python tool for extracting torrent metadata from qBittorrent and prep
 
 - **Torrent Extraction**: Extract torrents from qBittorrent with full metadata
 - **Media Analysis**: Automatic detection of resolution, codecs, languages, subtitles
+- **File-Based Analysis**: Optional ffmpeg integration for accurate technical data
 - **TMDB Integration**: Automatic movie/TV show matching with TheMovieDB
 - **NFO Generation**: Create NFO files with complete media information
 - **Metadata Updates**: Update tracker, comment, tags, and category during extraction
 - **Batch Processing**: Process multiple torrents with filtering options
 - **Caching**: File-based caching for TMDB lookups to reduce API calls
 - **CLI Interface**: Easy-to-use command-line interface
+- **Modular Architecture**: Clean, maintainable code structure
+
+## Architecture
+
+qbit2track is built with a modular architecture for better maintainability and extensibility:
+
+### Core Components
+- **`models.py`** - Data models and structures
+- **`utils.py`** - Shared utility functions
+- **`extractor.py`** - Main orchestration logic
+
+### Media Analysis Subsystem (`media/`)
+- **`file_analyzer.py`** - ffmpeg-based file analysis
+- **`filename_analyzer.py`** - Filename pattern parsing
+- **`tmdb_matcher.py`** - TMDB API integration with caching
+
+### Specialized Managers
+- **`torrent.py`** - Torrent file creation and metadata management
+- **`nfo.py`** - NFO file generation
+
+This modular design makes the codebase easier to understand, test, and extend.
 
 ### Prerequisites
 
@@ -37,6 +59,7 @@ pip install -e .
 - `click` - CLI framework
 - `requests` - HTTP requests
 - `python-dotenv` - Environment variable management
+- `ffmpeg-python` - Optional file-based media analysis
 
 ## Configuration
 
@@ -104,9 +127,25 @@ qbit2track extract --update-tracker "https://private-tracker.com/announce?passke
 # Update multiple fields
 qbit2track extract \
   --update-tracker "https://tracker.com/announce?passkey=xxx" \
-  --update-comment "Prepared for private tracker" \
-  --update-tags "movie,1080p,ready" \
+  --update-comment "Uploaded by qbit2track" \
+  --update-tags "movies,2160p,hdr" \
   --update-category "movies"
+```
+
+#### File Analysis Enhancement
+When `ffmpeg-python` is installed, the tool automatically enhances filename analysis with actual file data:
+
+```bash
+# Install ffmpeg support for enhanced accuracy
+pip install ffmpeg-python
+
+# Run extraction - file analysis is automatic
+qbit2track extract --dry-run
+```
+
+The tool will show when file analysis is being used:
+```
+2026-01-03 12:00:00 - qbit2track.media.file_analyzer - DEBUG - Enhanced media info with file analysis for /path/to/movie.mkv
 ```
 
 #### Filter by Category or Tags
@@ -212,7 +251,10 @@ output/
 
 ## Media Detection
 
-The tool automatically detects:
+The tool automatically detects media information through two methods:
+
+### 1. Filename Analysis
+Always available and extracts information from torrent/filenames:
 
 ### Video Information
 - **Resolution**: 480p, 720p, 1080p, 2160p (4K)
@@ -223,6 +265,21 @@ The tool automatically detects:
 ### Audio Information
 - **Audio Codecs**: AC3, DTS, DDP, AAC, etc.
 - **Channels**: 2.0, 5.1, 7.1, Atmos
+
+### 2. File-Based Analysis (Optional)
+When `ffmpeg-python` is installed, the tool analyzes actual media files for:
+
+- **Accurate Codecs**: Real video/audio codecs from file streams
+- **Exact Resolution**: Actual video dimensions
+- **Stream Languages**: Language tags from audio/subtitle streams
+- **Technical Details**: Bitrate, duration, container info
+
+**Installation for file analysis:**
+```bash
+pip install ffmpeg-python
+```
+
+**Note**: File-based analysis enhances accuracy but is optional. The tool works with filename analysis alone.
 
 ### Languages & Subtitles
 - **Languages**: English (en), French (fr), German (de), Spanish (es), etc.
@@ -314,11 +371,35 @@ qbit2track --verbose extract --dry-run
 
 ## Contributing
 
-1. Fork the repository
+We welcome contributions! The modular architecture makes it easy to contribute:
+
+### Development Setup
+```bash
+git clone https://github.com/yourusername/qbit2track.git
+cd qbit2track
+pip install -r requirements.txt
+pip install -e .
+```
+
+### Areas for Contribution
+- **Media Analysis**: Add new filename patterns in `media/filename_analyzer.py`
+- **File Analysis**: Enhance ffmpeg integration in `media/file_analyzer.py`
+- **API Integration**: Add new services in `media/tmdb_matcher.py`
+- **Output Formats**: Add new generators in `nfo.py` or `torrent.py`
+- **CLI Features**: Extend commands in `cli.py`
+
+### Contribution Process
+1. Fork repository
 2. Create a feature branch
 3. Make your changes
 4. Add tests if applicable
 5. Submit a pull request
+
+### Code Style
+- Follow PEP 8
+- Add type hints
+- Include docstrings
+- Test individual modules when possible
 
 ## License
 
