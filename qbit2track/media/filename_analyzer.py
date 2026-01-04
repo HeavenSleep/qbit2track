@@ -1,16 +1,32 @@
 """
 Filename-based media information extraction
 """
+import logging
 import re
+import unicodedata
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
 from ..config import Config
 from ..models import MediaInfo
 
+logger = logging.getLogger(__name__)
+
+# Exception UnknownType
+class UnknownTypeException(Exception):
+    """Exception raised when the type of the media is unknown"""
+    pass
 
 class FilenameAnalyzer:
     """Analyze filenames and paths to extract media information"""
+    
+    def _normalize_accents(self, text: str) -> str:
+        """Normalize accents and special characters"""
+        # Normalize to NFD (decomposed) form and remove combining diacritics
+        normalized = unicodedata.normalize('NFD', text)
+        # Remove diacritic marks
+        without_diacritics = ''.join(c for c in normalized if not unicodedata.combining(c))
+        return without_diacritics
     
     # Common patterns
     RESOLUTION_PATTERNS = [
@@ -34,14 +50,14 @@ class FilenameAnalyzer:
     ]
 
     FILE_SOURCE_PATTERNS = [
-        r'(webdl|web-dl|webrip|dvdrip|bdrip|bd|dvd5|dvd9|bluray5|bluray9|bluray|web.ad|web|dvd|XviD|brrip)'
+        r'(webdl|web-dl|webrip|dvdrip|bdrip|bd|dvd5|dvd9|bluray5|bluray9|bluray|web.ad|web|dvd|XviD|brrip|tvrip)'
     ]
 
     TEAM_PATTERNS = [
-        r'\W(\w{2,8})\W\(\w+\W*\)\.\w{3}$',  # Team name before year, limit to 2-8 chars
-        r'\W(\w{2,8})\W\(\w+\W*\)$',  # Team name before year, no extension
-        r'\W(\w{2,8})\.\w{3}$',  # Team name at end, limit to 2-8 chars
-        r'\W(\w{2,8})$',  # Team name at end, no extension
+        r'\-\W*(\w{2,8})\W\(\w+\W*\)\.\w{3}$',  # Team name before year, limit to 2-8 chars
+        r'\-\W*(\w{2,8})\W\(\w+\W*\)$',  # Team name before year, no extension
+        r'\-\W*(\w{2,8})\.\w{3}$',  # Team name at end, limit to 2-8 chars
+        r'\-\W*(\w{2,8})$',  # Team name at end, no extension
         r'\((\w{2,8})\)\.\w{3}$',  # Team name in parentheses
         r'\[(\w{2,8})\]$',  # Team name in brackets
         r'(Tsundere-Raws) \(CR\)',  # Specific known team
@@ -53,7 +69,7 @@ class FilenameAnalyzer:
     ]
 
     SPECIAL_VERSION_PATTERNS = [
-        r'\W(Extended|Extended Version|Extended Edition|Directors Cut|Final|Proper|Internal|Fansub|Hybrid|DC|Director\'s Cut|Custom|Unrated|Unrated Version|\w{3,5}logie|Complet|Repack|Reapck|Remux|Integrale|Collection|Saga)'
+        r'\W(Extended|Extended Version|Extended Edition|Directors Cut|Final|Proper|Internal|Fansub|Hybrid|DC|Director\'s Cut|Custom|Unrated|Unrated Version|\w{3,5}logie|Complet|Repack|Reapck|Remux|Integrale|Collection|Saga|OAV|Pack)'
     ]
 
     TRASH_PATTERNS = [
@@ -72,8 +88,6 @@ class FilenameAnalyzer:
             r'\Wvf2\W',
             r'\Wvf\W',
             r'\Wvof\W',
-            r'\Wvo\W',
-            r'\Wvostfr\W',
             r'\Wfr\W'
         ],
         "English": [
@@ -111,12 +125,7 @@ class FilenameAnalyzer:
     }
 
     LANGUAGES = {
-        r'\War\W': 'Arabic', 
-        r'\Whi\W': 'Hindi', 
-        r'\Wno\W': 'Norwegian',
-        r'\Wnor\W': 'Norwegian',
-        r'\Wnorwegian\W': 'Norwegian',
-        r'\Wvo\w{2-4}': 'Original', 
+        r'\Wvo\w{2,4}': 'Original', 
         r'\Wmulti\W': Config.from_env().app.multi_language
     }
 
@@ -129,9 +138,11 @@ class FilenameAnalyzer:
     def __init__(self, file_analyzer=None):
         self.file_analyzer = file_analyzer
     
-    def analyze_filename(self, filename: str, category: str = "", file_path: Optional[Path] = None) -> MediaInfo:
+    def analyze_filename(self, filename: str, category: Optional[str] = None, file_analysis: Optional[Dict] = None) -> MediaInfo:
         """Extract media information from filename and optionally from file analysis"""
-        filename = filename.lower()
+        # Normalize accents before processing
+        filename_normalized = self._normalize_accents(filename)
+        filename = filename_normalized.lower()
         
         media_info = MediaInfo(title=Path(filename).stem)
         
@@ -222,21 +233,16 @@ class FilenameAnalyzer:
         # Extract title (clean version)
         media_info.title = self._clean_title(filename, media_info)
         
-        # If file path is provided, analyze actual file content for more accurate info
-        if file_path and self.file_analyzer and self.file_analyzer.available:
-            self._enhance_with_file_analysis(media_info, file_path)
+        # If file analysis is provided, enhance with actual file content
+        if file_analysis and self.file_analyzer and self.file_analyzer.available:
+            self._enhance_with_file_analysis(media_info, file_analysis)
         
         return media_info
     
-    def _enhance_with_file_analysis(self, media_info: MediaInfo, file_path: Path):
+    def _enhance_with_file_analysis(self, media_info: MediaInfo, file_analysis: Dict):
         """Enhance media info with actual file analysis"""
         try:
-            if file_path.is_file():
-                file_info = self.file_analyzer.analyze_file(file_path)
-            elif file_path.is_dir():
-                file_info = self.file_analyzer.analyze_directory(file_path)
-            else:
-                return
+            file_info = file_analysis
             
             # Override filename-based info with file-based info if available
             if file_info.get('video_codec'):
@@ -263,32 +269,38 @@ class FilenameAnalyzer:
             logger = logging.getLogger(__name__)
             logger.debug(f"Failed to enhance with file analysis: {e}")
     
-    def _determine_type(self, filename: str, category: str) -> str:
+    def _determine_type(self, filename: str, category: Optional[str]) -> str:
         """Determine media type from filename and category"""
         filename_lower = filename.lower()
-        category_lower = category.lower()
         
-        # Check category first
-        if 'tv' in category_lower or 'series' in category_lower:
-            return "tvshow"
-        elif 'anime' in category_lower or 'manga' in category_lower:
-            return "anime"
-        elif 'movie' in category_lower or 'film' in category_lower:
-            return "movie"
+        # Check category first if provided
+        if category:
+            category_lower = category.lower()
+            if 'tv' in category_lower or 'series' in category_lower:
+                return "tvshow"
+            elif 'movie' in category_lower or 'film' in category_lower:
+                return "movie"
+            elif 'anime' in category_lower or 'animation' in category_lower:
+                return "anime"
         
         # Check filename patterns
         if any(pattern in filename_lower for pattern in ['s0', 'season', 'episode']):
             return "tvshow"
         elif any(pattern in filename_lower for pattern in ['anime', 'manga']):
             return "anime"
+        elif any(pattern in filename_lower for pattern in ['movie', 'film']):
+            return "movie"
         
-        return "movie"
+        raise UnknownTypeException("Unknown media type")
     
     def _extract_season_episode(self, filename: str) -> Tuple[Optional[int], Optional[int]]:
         """Extract season and episode numbers from filename"""
         # Pattern for episodes
         episode_patterns = [
-            r'[Ss](\d{1,2})[Ee](\d{1,2})',
+            r'\b(\d{1,2})[Tt]h\W*[Ss]eason\W*(\d{1,2})\b',
+            r'\b(\d{1,2})[Ss]t\W*[Ss]eason\W*(\d{1,2})\b',
+            r'\b(\d{1,2})[Rr]d\W*[Ss]eason\W*(\d{1,2})\b',
+            r'\b(\d{1,2})[Nn]d\W*[Ss]eason\W*(\d{1,2})\b',
             r'[Ss](\d{1,2})[Ee](\d{1,2})',
             r'(\d{1,2})x(\d{1,2})',
             r'S(\d{1,2})-(\d{1,2})',
@@ -305,9 +317,13 @@ class FilenameAnalyzer:
 
         # Pattern for full season
         full_season_patterns = [
-            r'[Ss]aison\s*(\d{1,2})',
-            r'[Ss]eason\s*(\d{1,2})',
-            r'[Ss](\d{1,2})'
+            r'(\d{1,2})[Tt]h\W*[Ss]eason', # 7th Season
+            r'(\d{1,2})[Ss]t\W*[Ss]eason', # 1st Season
+            r'(\d{1,2})[Rr]d\W*[Ss]eason', # 3rd Season
+            r'(\d{1,2})[Nn]d\W*[Ss]eason', # 2nd Season
+            r'[Ss]aison\W*(\d{1,2})', # Saison 7
+            r'[Ss]eason\W*(\d{1,2})', # Season 7
+            r'[Ss](\d{1,2})' # S7
         ]
         for pattern in full_season_patterns:
             match = re.search(pattern, filename)
@@ -330,7 +346,9 @@ class FilenameAnalyzer:
         # Check legacy patterns for other languages
         for pattern, lang in self.LANGUAGES.items():
             if pattern == r'\Wmulti\W':
-                continue  # Skip multi, handled separately
+                if 'Original' not in languages:
+                    languages.append('Original')
+
             if re.search(pattern, filename, flags=re.IGNORECASE):
                 if lang not in languages:
                     languages.append(lang)
@@ -352,7 +370,9 @@ class FilenameAnalyzer:
     
     def _clean_title(self, filename: str, media_info: MediaInfo) -> str:
         """Clean title by removing technical information"""
-        title = Path(filename).stem
+        # Normalize accents before processing
+        filename_normalized = self._normalize_accents(filename)
+        title = Path(filename_normalized).stem
 
         # Handle no extension case
         if len(title) + 4 < len(filename):
@@ -394,20 +414,13 @@ class FilenameAnalyzer:
                 title = title[:match.start()]
 
         # Remove all defined patterns - but only remove language patterns if detected
-        all_patterns = self.AUDIO_CODEC_PATTERNS + self.FILE_SOURCE_PATTERNS + self.HDR_PATTERNS + self.PLATFORM_PATTERNS + self.SPECIAL_VERSION_PATTERNS + self.TEAM_PATTERNS + self.TRASH_PATTERNS
+        all_patterns = self.AUDIO_CODEC_PATTERNS + self.FILE_SOURCE_PATTERNS + self.HDR_PATTERNS + self.PLATFORM_PATTERNS + self.SPECIAL_VERSION_PATTERNS + self.TEAM_PATTERNS + self.TRASH_PATTERNS + list(self.LANGUAGES.keys())
         
         # Add language patterns only if languages are detected
         detected_languages_lower = [lang.lower() for lang in media_info.languages]
         for language_name, patterns in self.LANGUAGE_PATTERNS.items():
             if language_name.lower() in detected_languages_lower:
                 all_patterns.extend(patterns)
-        
-        # Add legacy language patterns if detected
-        for pattern, lang in self.LANGUAGES.items():
-            if pattern == r'\Wmulti\W':
-                continue  # Skip multi, handled separately
-            if lang.lower() in detected_languages_lower:
-                all_patterns.append(pattern)
 
         for pattern in all_patterns:
             match = re.search(pattern, title, flags=re.IGNORECASE)
@@ -416,17 +429,20 @@ class FilenameAnalyzer:
         
         # For TV shows, remove season/episode
         tvshow_patterns = [
+            r'\bS\d{1,2}E\d{1,2}V\d\b', # Handle multiple episode versions
             r'\bS\d{1,2}E\d{1,2}\b',
             r'\bS\d{1,2}\b',
             r'\bE\d{1,2}\b',
             r'\bE\d{1,2}-\d{1,2}\b', # Handle double episodes
             r'\bS\d{1,3}-\d{1,3}\b', # Handle ranges like S1-2
             r'\b\d{1,3}-\d{1,3}\b', # Handle ranges like 71-78
-            r'[Ss]aison\s*\d{1,2}'
+            r'[Ss]aison\W*\d{1,2}'
         ]
         if media_info.type in ["tvshow", "anime"]:
             for pattern in tvshow_patterns:
-                title = re.sub(pattern, '', title, flags=re.IGNORECASE)
+                match = re.search(pattern, title, flags=re.IGNORECASE)
+                if match:
+                    title = title[:match.start()]
 
         # Remove separators and clean up
         title = re.sub(r'[._\-\+]', ' ', title)
