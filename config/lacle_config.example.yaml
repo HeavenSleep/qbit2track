@@ -1,0 +1,46 @@
+# Example La Cale API Configuration
+# This shows how to configure the La Cale tracker for uploads
+
+api_configs:
+  la_cale:
+    name: "La Cale"
+    base_url: "https://la-cale.space"
+    endpoints:
+      upload: "/api/external/upload"
+      meta: "/api/external/meta"
+    
+    # Authentication
+    auth:
+      type: "api_key"  # Uses passkey as API key
+      api_key: "${LA_CALE_PASSKEY}"  # Set this environment variable
+    
+    # Request configuration
+    timeout: 60
+    headers:
+      User-Agent: "qbit2track/1.0"
+    
+    # Rate limiting (La Cale allows 30 requests/minute)
+    retry:
+      max_attempts: 3
+      backoff_factor: 2
+
+# Usage examples:
+# 
+# 1. Set your passkey as environment variable:
+#    export LA_CALE_PASSKEY="your_secret_passkey_here"
+#
+# 2. Test the uploader:
+#    python -m qbit2track.cli test-lacle --passkey $LA_CALE_PASSKEY
+#
+# 3. Upload with specific parameters:
+#    python -m qbit2track.cli test-lacle \
+#      --passkey $LA_CALE_PASSKEY \
+#      --title "My Movie Title" \
+#      --category-id "1" \
+#      --torrent-file "/path/to/movie.torrent" \
+#      --description "Great movie!" \
+#      --tmdb-id 12345 \
+#      --tmdb-type MOVIE \
+#      --tags "action,adventure" \
+#      --cover-url "https://example.com/poster.jpg" \
+#      --nfo-file "/path/to/movie.nfo"

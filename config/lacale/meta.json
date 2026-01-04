@@ -1,0 +1,894 @@
+{
+  "categories": [
+    {
+      "id": "cmjudvbkc0002oqrubngfxtjv",
+      "name": "Audio",
+      "slug": "audio",
+      "icon": "Music",
+      "parentId": null,
+      "children": [
+        {
+          "id": "cmjudwe3x0000uyru4udzwa2m",
+          "name": "Audio divers",
+          "slug": "audio-divers",
+          "icon": null,
+          "parentId": "cmjudvbkc0002oqrubngfxtjv",
+          "children": null
+        },
+        {
+          "id": "cmjoyv2fj00097eryslbwc61p",
+          "name": "Musique",
+          "slug": "music",
+          "icon": null,
+          "parentId": "cmjudvbkc0002oqrubngfxtjv",
+          "children": [
+            {
+              "id": "cmjoyv2fu000a7ery1gj44cws",
+              "name": "FLAC",
+              "slug": "flac",
+              "icon": null,
+              "parentId": "cmjoyv2fj00097eryslbwc61p",
+              "children": null
+            },
+            {
+              "id": "cmjso3s1i00tn01qtqmo98esj",
+              "name": "M4A",
+              "slug": "m4a",
+              "icon": null,
+              "parentId": "cmjoyv2fj00097eryslbwc61p",
+              "children": null
+            },
+            {
+              "id": "cmjoyv2fz000b7eryyccyqzuw",
+              "name": "MP3",
+              "slug": "mp3",
+              "icon": null,
+              "parentId": "cmjoyv2fj00097eryslbwc61p",
+              "children": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cmjudwffs0008uyrurhs68b09",
+      "name": "Autres",
+      "slug": "autres",
+      "icon": "Compass",
+      "parentId": null,
+      "children": [
+        {
+          "id": "cmjudwfjw0009uyrumv6wdns2",
+          "name": "Divers",
+          "slug": "divers",
+          "icon": null,
+          "parentId": "cmjudwffs0008uyrurhs68b09",
+          "children": null
+        }
+      ]
+    },
+    {
+      "id": "cmjq8xw5u005k01o0uvh4u4uq",
+      "name": "XXX",
+      "slug": "xxx",
+      "icon": "Image",
+      "parentId": null,
+      "children": [
+        {
+          "id": "cmjudwfwe000buyru9lp28ydp",
+          "name": "Gay",
+          "slug": "xxx-gay",
+          "icon": null,
+          "parentId": "cmjq8xw5u005k01o0uvh4u4uq",
+          "children": null
+        },
+        {
+          "id": "cmjudwfre000auyruh27lohdx",
+          "name": "Hétéro",
+          "slug": "xxx-hetero",
+          "icon": null,
+          "parentId": "cmjq8xw5u005k01o0uvh4u4uq",
+          "children": null
+        },
+        {
+          "id": "cmjudwg0i000cuyru3abam7fk",
+          "name": "Lesbien",
+          "slug": "xxx-lesbien",
+          "icon": null,
+          "parentId": "cmjq8xw5u005k01o0uvh4u4uq",
+          "children": null
+        },
+        {
+          "id": "cmjudwg4v000duyrukdtn0rs9",
+          "name": "Trans",
+          "slug": "xxx-trans",
+          "icon": null,
+          "parentId": "cmjq8xw5u005k01o0uvh4u4uq",
+          "children": null
+        }
+      ]
+    },
+    {
+      "id": "cmjoyv2h9000j7erywehfck9i",
+      "name": "E-books",
+      "slug": "ebooks",
+      "icon": "BookOpen",
+      "parentId": null,
+      "children": [
+        {
+          "id": "cmjoyv2hh000l7eryje4gh90d",
+          "name": "BD",
+          "slug": "bd",
+          "icon": null,
+          "parentId": "cmjoyv2h9000j7erywehfck9i",
+          "children": null
+        },
+        {
+          "id": "cmjoyv2hk000m7ery7yod4f7w",
+          "name": "Documentaires",
+          "slug": "documentaires",
+          "icon": null,
+          "parentId": "cmjoyv2h9000j7erywehfck9i",
+          "children": null
+        },
+        {
+          "id": "cmjoyv2hc000k7erylxicd39a",
+          "name": "Romans",
+          "slug": "romans",
+          "icon": null,
+          "parentId": "cmjoyv2h9000j7erywehfck9i",
+          "children": null
+        }
+      ]
+    },
+    {
+      "id": "cmjoyv2ga000c7eryxbrqm4bd",
+      "name": "Jeux",
+      "slug": "games",
+      "icon": "Gamepad2",
+      "parentId": null,
+      "children": [
+        {
+          "id": "cmjoyv2gl000e7erymqpedns5",
+          "name": "Consoles",
+          "slug": "consoles",
+          "icon": null,
+          "parentId": "cmjoyv2ga000c7eryxbrqm4bd",
+          "children": null
+        },
+        {
+          "id": "cmjudwehi0001uyruegbho4e6",
+          "name": "Jeux mobiles",
+          "slug": "jeux-mobiles",
+          "icon": null,
+          "parentId": "cmjoyv2ga000c7eryxbrqm4bd",
+          "children": null
+        },
+        {
+          "id": "cmjoyv2gf000d7ery1brkh5f7",
+          "name": "PC",
+          "slug": "pc",
+          "icon": null,
+          "parentId": "cmjoyv2ga000c7eryxbrqm4bd",
+          "children": null
+        }
+      ]
+    },
+    {
+      "id": "cmjudwez90004uyrultflfeay",
+      "name": "E-books & Documents",
+      "slug": "ebooks-documents",
+      "icon": "BookOpen",
+      "parentId": null,
+      "children": [
+        {
+          "id": "cmjudwf3n0005uyruacwxbukw",
+          "name": "Livres",
+          "slug": "livres",
+          "icon": null,
+          "parentId": "cmjudwez90004uyrultflfeay",
+          "children": null
+        },
+        {
+          "id": "cmjudwf7v0006uyruoedp7ckd",
+          "name": "Presse",
+          "slug": "presse",
+          "icon": null,
+          "parentId": "cmjudwez90004uyrultflfeay",
+          "children": null
+        },
+        {
+          "id": "cmjudwfbq0007uyrutkxeo91o",
+          "name": "Éducation",
+          "slug": "education",
+          "icon": null,
+          "parentId": "cmjudwez90004uyrultflfeay",
+          "children": null
+        }
+      ]
+    },
+    {
+      "id": "cmjudvb9d0000oqrult6eafdv",
+      "name": "Vidéo",
+      "slug": "video",
+      "icon": "Film",
+      "parentId": null,
+      "children": [
+        {
+          "id": "cmjoyv2cd00027eryreyk39gz",
+          "name": "Films",
+          "slug": "films",
+          "icon": null,
+          "parentId": "cmjudvb9d0000oqrult6eafdv",
+          "children": [
+            {
+              "id": "cmjoyv2d900057eryz5xw65xc",
+              "name": "Animation",
+              "slug": "animation",
+              "icon": null,
+              "parentId": "cmjoyv2cd00027eryreyk39gz",
+              "children": null
+            }
+          ]
+        },
+        {
+          "id": "cmjudvbhm0001oqrukyefrbjz",
+          "name": "Spectacles",
+          "slug": "spectacles",
+          "icon": null,
+          "parentId": "cmjudvb9d0000oqrult6eafdv",
+          "children": null
+        },
+        {
+          "id": "cmjoyv2dg00067ery8m6c3q8h",
+          "name": "Séries TV",
+          "slug": "series",
+          "icon": null,
+          "parentId": "cmjudvb9d0000oqrult6eafdv",
+          "children": [
+            {
+              "id": "cmjoyv2do00077eryv2e1e0hj",
+              "name": "Séries HD",
+              "slug": "s-ries-hd",
+              "icon": null,
+              "parentId": "cmjoyv2dg00067ery8m6c3q8h",
+              "children": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cmjudwelm0002uyru4niaih3a",
+      "name": "Applications",
+      "slug": "applications",
+      "icon": "Monitor",
+      "parentId": null,
+      "children": [
+        {
+          "id": "cmjoyv2gp000f7eryw6jnbyvc",
+          "name": "Logiciels",
+          "slug": "software",
+          "icon": null,
+          "parentId": "cmjudwelm0002uyru4niaih3a",
+          "children": [
+            {
+              "id": "cmjoyv2h1000h7ery0a2hnjt3",
+              "name": "Linux",
+              "slug": "linux",
+              "icon": null,
+              "parentId": "cmjoyv2gp000f7eryw6jnbyvc",
+              "children": null
+            }
+          ]
+        },
+        {
+          "id": "cmjudweqb0003uyruxn5cm3ya",
+          "name": "Systèmes",
+          "slug": "systemes",
+          "icon": null,
+          "parentId": "cmjudwelm0002uyru4niaih3a",
+          "children": null
+        }
+      ]
+    }
+  ],
+  "tagGroups": [
+    {
+      "id": "cmjuhlxs30000v4rukiygp2l5",
+      "name": "Type (Séries)",
+      "slug": "type-s-ries",
+      "order": 10,
+      "tags": null
+    },
+    {
+      "id": "cmjuhlxw90001v4rubvu7lm34",
+      "name": "Type (Spectacles)",
+      "slug": "type-spectacles",
+      "order": 20,
+      "tags": null
+    },
+    {
+      "id": "cmjuhly080002v4ruzrvjf2ds",
+      "name": "Genres",
+      "slug": "genres",
+      "order": 30,
+      "tags": null
+    },
+    {
+      "id": "cmjuhly480003v4ru8rabfaab",
+      "name": "Qualité / Résolution",
+      "slug": "qualit-r-solution",
+      "order": 40,
+      "tags": null
+    },
+    {
+      "id": "cmjuhly890004v4ruhfvig4ih",
+      "name": "Codec vidéo",
+      "slug": "codec-vid-o",
+      "order": 50,
+      "tags": null
+    },
+    {
+      "id": "cmjuhlyc70005v4ru9u19fbl0",
+      "name": "Codec audio",
+      "slug": "codec-audio",
+      "order": 60,
+      "tags": null
+    },
+    {
+      "id": "cmjuhlygc0006v4ru89t06zpt",
+      "name": "Sous-titres",
+      "slug": "sous-titres",
+      "order": 70,
+      "tags": null
+    },
+    {
+      "id": "cmjuhlyka0007v4ru031hr4fr",
+      "name": "Langue",
+      "slug": "langue",
+      "order": 80,
+      "tags": null
+    },
+    {
+      "id": "cmjuhlyo70008v4ru2kp255ef",
+      "name": "Type (Musique)",
+      "slug": "type-musique",
+      "order": 90,
+      "tags": null
+    },
+    {
+      "id": "cmjuhlys70009v4runi8uy4vd",
+      "name": "Genres (Musique)",
+      "slug": "genres-musique",
+      "order": 100,
+      "tags": null
+    },
+    {
+      "id": "cmjuhlyw6000av4rucvnkccet",
+      "name": "Type (Audio divers)",
+      "slug": "type-audio-divers",
+      "order": 110,
+      "tags": null
+    },
+    {
+      "id": "cmjuhlz03000bv4ruubztyjte",
+      "name": "Format (Audio)",
+      "slug": "format-audio",
+      "order": 120,
+      "tags": null
+    },
+    {
+      "id": "cmjuhlz40000cv4ru4sy827rc",
+      "name": "Qualité / Bitrate",
+      "slug": "qualit-bitrate",
+      "order": 130,
+      "tags": null
+    },
+    {
+      "id": "cmjuhlz80000dv4rut4cytdtf",
+      "name": "Sample rate",
+      "slug": "sample-rate",
+      "order": 140,
+      "tags": null
+    },
+    {
+      "id": "cmjuhlzby000ev4ruk7jns7oa",
+      "name": "Profondeur",
+      "slug": "profondeur",
+      "order": 150,
+      "tags": null
+    },
+    {
+      "id": "cmjuhlzfw000fv4ruery2fa8q",
+      "name": "Canaux",
+      "slug": "canaux",
+      "order": 160,
+      "tags": null
+    },
+    {
+      "id": "cmjuhlzk5000gv4ru1tezyzvz",
+      "name": "Source",
+      "slug": "source",
+      "order": 170,
+      "tags": null
+    },
+    {
+      "id": "cmjuhlzo7000hv4ruqgyi77ik",
+      "name": "Plateforme (Jeux)",
+      "slug": "plateforme-jeux",
+      "order": 180,
+      "tags": [
+        {
+          "id": "cmjudxfu9003juyrua0ldehsg",
+          "name": "3DS",
+          "slug": "3ds"
+        },
+        {
+          "id": "cmjudxi81003ruyrubfnkffo9",
+          "name": "Android",
+          "slug": "android"
+        },
+        {
+          "id": "cmjudxhjv003puyruz5d61hfb",
+          "name": "Arcade / MAME",
+          "slug": "arcade-mame"
+        },
+        {
+          "id": "cmjvvj7bs006i01mxsihtihgp",
+          "name": "DS/DSi",
+          "slug": "ds-dsi"
+        },
+        {
+          "id": "cmjudxhww003quyruennexnx7",
+          "name": "Emulation",
+          "slug": "emulation"
+        },
+        {
+          "id": "cmjudxc870038uyrulg83sraj",
+          "name": "Linux",
+          "slug": "linux"
+        },
+        {
+          "id": "cmjudxgqn003muyrupxp74f2k",
+          "name": "Mega Drive",
+          "slug": "mega-drive"
+        },
+        {
+          "id": "cmjudxg6n003kuyruy06etvlf",
+          "name": "NES",
+          "slug": "nes"
+        },
+        {
+          "id": "cmjudxh02003nuyruikd2risu",
+          "name": "PS1",
+          "slug": "ps1"
+        },
+        {
+          "id": "cmjudxh91003ouyrux3e9qlug",
+          "name": "PS2",
+          "slug": "ps2"
+        },
+        {
+          "id": "cmjudxds4003duyrua0ivjy0q",
+          "name": "PS3",
+          "slug": "ps3"
+        },
+        {
+          "id": "cmjudxdex003cuyruax3vj2ll",
+          "name": "PS4",
+          "slug": "ps4"
+        },
+        {
+          "id": "cmjudxd4f003buyrurtwrlo9r",
+          "name": "PS5",
+          "slug": "ps5"
+        },
+        {
+          "id": "cmjudxggx003luyru59qr3btz",
+          "name": "SNES",
+          "slug": "snes"
+        },
+        {
+          "id": "cmjudxe35003euyru83gcfi94",
+          "name": "Series X|S",
+          "slug": "series-x-s"
+        },
+        {
+          "id": "cmjudxf9b003huyruc3l1plmv",
+          "name": "Switch",
+          "slug": "switch"
+        },
+        {
+          "id": "cmjudxcum003auyru5q9rv4bb",
+          "name": "VR",
+          "slug": "vr"
+        },
+        {
+          "id": "cmjudxfjl003iuyru73x5wrrn",
+          "name": "Wii U",
+          "slug": "wii-u"
+        },
+        {
+          "id": "cmjudxbzq0037uyru3zstc1wn",
+          "name": "Windows",
+          "slug": "windows"
+        },
+        {
+          "id": "cmjudxene003guyrub0ycmg8w",
+          "name": "Xbox 360",
+          "slug": "xbox-360"
+        },
+        {
+          "id": "cmjudxedm003fuyrunyz3ogop",
+          "name": "Xbox One",
+          "slug": "xbox-one"
+        },
+        {
+          "id": "cmjudxijb003suyru25z66zfh",
+          "name": "iOS",
+          "slug": "ios"
+        },
+        {
+          "id": "cmjudxcky0039uyru8rr6w5to",
+          "name": "macOS",
+          "slug": "macos"
+        }
+      ]
+    },
+    {
+      "id": "cmjuhlzsh000iv4ru6xkdwwuz",
+      "name": "Type (Logiciels)",
+      "slug": "type-logiciels",
+      "order": 190,
+      "tags": [
+        {
+          "id": "cmjudxkah003xuyrub06nakk6",
+          "name": "3D / CAO",
+          "slug": "3d-cao"
+        },
+        {
+          "id": "cmjudxjc4003vuyruyc87djmd",
+          "name": "Audio / MAO",
+          "slug": "audio-mao"
+        },
+        {
+          "id": "cmjudxisk003tuyruihwa45s8",
+          "name": "Bureautique",
+          "slug": "bureautique"
+        },
+        {
+          "id": "cmjudxkkr003yuyrugztjk2lu",
+          "name": "Développement",
+          "slug": "d-veloppement"
+        },
+        {
+          "id": "cmjudxj2j003uuyru2jh5sllt",
+          "name": "Graphisme / Design",
+          "slug": "graphisme-design"
+        },
+        {
+          "id": "cmjudxkup003zuyruwllbqa05",
+          "name": "Sécurité / Réseau",
+          "slug": "s-curit-r-seau"
+        },
+        {
+          "id": "cmjudxl4o0040uyruln2af7yz",
+          "name": "Utilitaires",
+          "slug": "utilitaires"
+        },
+        {
+          "id": "cmjudxjzc003wuyruytfp75c1",
+          "name": "Vidéo / Montage",
+          "slug": "vid-o-montage"
+        }
+      ]
+    },
+    {
+      "id": "cmjuhlzwh000jv4ruxigb300r",
+      "name": "Plateforme (Logiciels)",
+      "slug": "plateforme-logiciels",
+      "order": 200,
+      "tags": [
+        {
+          "id": "cmjudxlez0041uyrue3i366kb",
+          "name": "BSD / Autres",
+          "slug": "bsd-autres"
+        },
+        {
+          "id": "cmjudxc870038uyrulg83sraj",
+          "name": "Linux",
+          "slug": "linux"
+        },
+        {
+          "id": "cmjudxbzq0037uyru3zstc1wn",
+          "name": "Windows",
+          "slug": "windows"
+        },
+        {
+          "id": "cmjudxcky0039uyru8rr6w5to",
+          "name": "macOS",
+          "slug": "macos"
+        }
+      ]
+    },
+    {
+      "id": "cmjuhm00e000kv4ru49oocoh4",
+      "name": "Type (E-books)",
+      "slug": "type-e-books",
+      "order": 210,
+      "tags": [
+        {
+          "id": "cmjudxm5a0043uyruhymoz2oc",
+          "name": "BD / Comics / Mangas",
+          "slug": "bd-comics-mangas"
+        },
+        {
+          "id": "cmjudxo6z004auyrucuwyoq6q",
+          "name": "Cours",
+          "slug": "cours"
+        },
+        {
+          "id": "cmjudwllt000vuyruryo0oj20",
+          "name": "Historique",
+          "slug": "historique"
+        },
+        {
+          "id": "cmjudxncx0047uyrukzv8atac",
+          "name": "Historique (livres)",
+          "slug": "historique-livres"
+        },
+        {
+          "id": "cmjudxpd0004euyruxjjwtn26",
+          "name": "Informatique",
+          "slug": "informatique"
+        },
+        {
+          "id": "cmjudxmg70044uyrun7b83t4c",
+          "name": "Jeunesse",
+          "slug": "jeunesse"
+        },
+        {
+          "id": "cmjudxnnz0048uyruyuw3fs40",
+          "name": "Journaux",
+          "slug": "journaux"
+        },
+        {
+          "id": "cmjudxorx004cuyruqx9ktxin",
+          "name": "Langues",
+          "slug": "langues"
+        },
+        {
+          "id": "cmjudxnx70049uyruz678skrw",
+          "name": "Magazines",
+          "slug": "magazines"
+        },
+        {
+          "id": "cmjudwlwf000wuyruuq4v42o4",
+          "name": "Polar",
+          "slug": "polar"
+        },
+        {
+          "id": "cmjudxn2o0046uyrupq1nr536",
+          "name": "Polar (livres)",
+          "slug": "polar-livres"
+        },
+        {
+          "id": "cmjudxlsp0042uyruyvilfovk",
+          "name": "Romans",
+          "slug": "romans"
+        },
+        {
+          "id": "cmjudxmqq0045uyru96u4jt51",
+          "name": "Science-fiction / Fantasy",
+          "slug": "science-fiction-fantasy"
+        },
+        {
+          "id": "cmjudxp2o004duyruv8y74ks7",
+          "name": "Sciences",
+          "slug": "sciences"
+        },
+        {
+          "id": "cmjudxoi3004buyruuo9406et",
+          "name": "Tutoriels",
+          "slug": "tutoriels"
+        }
+      ]
+    },
+    {
+      "id": "cmjuhm04e000lv4rulrsmn844",
+      "name": "Format (E-books)",
+      "slug": "format-e-books",
+      "order": 220,
+      "tags": [
+        {
+          "id": "cmjudxqg8004iuyru511e2qdv",
+          "name": "AZW3",
+          "slug": "azw3"
+        },
+        {
+          "id": "cmjudxr1s004kuyru11ahbaly",
+          "name": "CBR",
+          "slug": "cbr"
+        },
+        {
+          "id": "cmjudxqpv004juyrujp99e972",
+          "name": "CBZ",
+          "slug": "cbz"
+        },
+        {
+          "id": "cmjudxpnc004fuyrurdsij7f6",
+          "name": "EPUB",
+          "slug": "epub"
+        },
+        {
+          "id": "cmjudxq6k004huyrub18j6y0u",
+          "name": "MOBI",
+          "slug": "mobi"
+        },
+        {
+          "id": "cmjudxpx9004guyru4vbs4ohr",
+          "name": "PDF",
+          "slug": "pdf"
+        },
+        {
+          "id": "cmjudxrba004luyrugxdltljp",
+          "name": "TXT",
+          "slug": "txt"
+        }
+      ]
+    },
+    {
+      "id": "cmjuhm08f000mv4rute33ik67",
+      "name": "Qualité de scan",
+      "slug": "qualit-de-scan",
+      "order": 230,
+      "tags": [
+        {
+          "id": "cmjudxrti004nuyrufdrx435t",
+          "name": "Bon scan",
+          "slug": "bon-scan"
+        },
+        {
+          "id": "cmjudxsdp004puyrufddjze1i",
+          "name": "Mauvais scan",
+          "slug": "mauvais-scan"
+        },
+        {
+          "id": "cmjudxrki004muyrujzmv6ulk",
+          "name": "Original",
+          "slug": "original"
+        },
+        {
+          "id": "cmjudxs3a004ouyrudu32u5hw",
+          "name": "Scan moyen",
+          "slug": "scan-moyen"
+        }
+      ]
+    },
+    {
+      "id": "cmjuhm0cg000nv4ruddemljav",
+      "name": "DPI",
+      "slug": "dpi",
+      "order": 240,
+      "tags": [
+        {
+          "id": "cmjudxsnx004quyrunne36d9c",
+          "name": "150 DPI",
+          "slug": "150-dpi"
+        },
+        {
+          "id": "cmjudxsyg004ruyruymuy4z4s",
+          "name": "300 DPI",
+          "slug": "300-dpi"
+        },
+        {
+          "id": "cmjudxtam004suyruh3e4h211",
+          "name": "600 DPI",
+          "slug": "600-dpi"
+        }
+      ]
+    },
+    {
+      "id": "cmjuhm0gc000ov4rum7xnp060",
+      "name": "OCR",
+      "slug": "ocr",
+      "order": 250,
+      "tags": [
+        {
+          "id": "cmjudxtkf004tuyru2v0x17ss",
+          "name": "OCR",
+          "slug": "ocr"
+        },
+        {
+          "id": "cmjudxttt004uuyruba3cg0qn",
+          "name": "Sans OCR",
+          "slug": "sans-ocr"
+        }
+      ]
+    },
+    {
+      "id": "cmjuhm0k8000pv4rulo32fa6u",
+      "name": "Mise en page",
+      "slug": "mise-en-page",
+      "order": 260,
+      "tags": [
+        {
+          "id": "cmjudxues004wuyruwepskpl4",
+          "name": "Fixe",
+          "slug": "fixe"
+        },
+        {
+          "id": "cmjudxu4c004vuyrujs6upfiv",
+          "name": "Reflowable",
+          "slug": "reflowable"
+        }
+      ]
+    },
+    {
+      "id": "cmjuhm0o7000qv4rug8zcyh8m",
+      "name": "Divers",
+      "slug": "divers",
+      "order": 270,
+      "tags": [
+        {
+          "id": "cmjudxvsv0050uyruzsmfggq0",
+          "name": "Packs audio",
+          "slug": "packs-audio"
+        },
+        {
+          "id": "cmjudxvje004zuyru1l9vawi9",
+          "name": "Ressources graphiques",
+          "slug": "ressources-graphiques"
+        },
+        {
+          "id": "cmjudxv9q004yuyrutx0dyspm",
+          "name": "Templates",
+          "slug": "templates"
+        },
+        {
+          "id": "cmjudxupe004xuyrun54l5emn",
+          "name": "Wallpapers",
+          "slug": "wallpapers"
+        }
+      ]
+    }
+  ],
+  "ungroupedTags": [
+    {
+      "id": "cmjudwpgn0016uyruja14d0fu",
+      "name": "Film",
+      "slug": "film"
+    },
+    {
+      "id": "cmjudwprl0017uyrusdiye36d",
+      "name": "Film d'animation",
+      "slug": "film-d-animation"
+    },
+    {
+      "id": "d5cl1va7302s73ah0hbg",
+      "name": "H264",
+      "slug": "h264"
+    },
+    {
+      "id": "d5cl21a7302s73ah0hf0",
+      "name": "H265",
+      "slug": "h265"
+    },
+    {
+      "id": "d5cl22i7302s73ah0hh0",
+      "name": "HEVC",
+      "slug": "hevc"
+    },
+    {
+      "id": "cmjudwq2v0018uyruhuylsy3q",
+      "name": "Spectacle",
+      "slug": "spectacle"
+    },
+    {
+      "id": "cmjunj2y400gx01paldbvf6ve",
+      "name": "VO",
+      "slug": "vo"
+    }
+  ]
+}
