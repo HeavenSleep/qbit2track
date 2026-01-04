@@ -52,7 +52,7 @@ class TorrentManager:
             current_progress = 0
             
             def progress_callback(torrent, filepath, pieces_done, pieces_total):
-                progress = int((pieces_done / pieces_total) * 90)
+                progress = int((pieces_done / pieces_total) * 98)
                 nonlocal current_progress
                 if progress > current_progress:
                     bar.update(progress - current_progress)
@@ -62,14 +62,14 @@ class TorrentManager:
             torrent.generate(callback=progress_callback, interval=1)
 
             # Finish hashing portion
-            if current_progress < 90:
-                bar.update(90 - current_progress)
-                current_progress = 90
+            if current_progress < 98:
+                bar.update(98 - current_progress)
+                current_progress = 98
             
-            # Writing phase (90-100%)
-            bar.update(5)  # Show we're starting to write
+            # Writing phase (98-100%)
+            bar.update(1)  # Show we're starting to write
             torrent.write(torrent_file)
-            bar.update(5)  # Complete
+            bar.update(1)  # Complete
 
         logger.info(f"Created torrent: {torrent_file}")
     
