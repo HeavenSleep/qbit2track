@@ -1,10 +1,11 @@
 """
 Utility functions for qbit2track
 """
+import os
 import json
 from datetime import datetime
 from dataclasses import asdict
-
+from typing import Optional
 
 class TMDBObject:
     """Wrapper class to allow dict-like access with attribute syntax for TMDB objects"""
@@ -63,3 +64,8 @@ def custom_json_decoder(obj):
             obj[key] = TMDBObject(obj[key])
     
     return obj
+
+def line_separator(title: Optional[str] = None) -> str:
+    if title:
+        return f"=== {title} " + "=" * (os.get_terminal_size().columns - len(f"=== {title} "))
+    return "=" * os.get_terminal_size().columns
