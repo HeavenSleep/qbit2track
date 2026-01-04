@@ -6,7 +6,7 @@ import logging
 import json
 import time
 from pathlib import Path
-from typing import Dict, List, Optional, Any
+from typing import Dict, List, Optional, Any, Tuple
 from dataclasses import dataclass
 import requests
 from requests.adapters import HTTPAdapter
@@ -387,6 +387,9 @@ class MassUploader:
     def check_upload_status(self, tracker_name: str, upload_id: str) -> Dict[str, Any]:
         """Check upload status for a specific tracker"""
         if tracker_name not in self.clients:
-            raise ValueError(f"Tracker '{tracker_name}' not configured")
+            raise ValueError(f"Tracker {tracker_name} not configured")
         
-        return self.clients[tracker_name].check_upload_status(upload_id)
+        client = self.clients[tracker_name]
+        return client.check_upload_status(upload_id)
+
+
