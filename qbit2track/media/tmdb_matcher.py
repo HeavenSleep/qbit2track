@@ -47,14 +47,8 @@ class TMDBMatcher:
             logger.debug(f"TMDB cache hit for: {media_info.title}")
             return cached_data
         
-        # Perform search
-        if media_info.type == "movie":
-            result, score = self._match_movie(media_info)
-        elif media_info.type in ["tvshow", "anime"]:
-            result, score = self._match_tvshow(media_info)
-        else:
-            logger.warning(f"Unknown media type: {media_info.type}")
-            return None
+        # Try original title first
+        result, score = self._match_with_retry(media_info)
         
         if result:
             self._set_cache(cache_key, result)
@@ -68,24 +62,79 @@ class TMDBMatcher:
         
         return result
     
-    def _match_movie(self, media_info: MediaInfo) -> Tuple[Optional[Dict], int]:
+    def _match_with_retry(self, media_info: MediaInfo) -> Tuple[Optional[Dict], int]:
+        """Match media with progressive title shortening retry"""
+        original_title = media_info.title
+        original_words = original_title.split()
+        min_word_count = int((len(original_words) * 0.6) + 0.5) # 60% threshold rounded up
+        
+        logger.debug(f"TMDB retry: Starting with '{original_title}' ({len(original_words)} words, min: {min_word_count})")
+        
+        current_title = original_title
+        current_words = original_words
+        best_result = None
+        best_score = 0
+        
+        while len(current_words) >= min_word_count:            
+            # Perform search
+            if media_info.type == "movie":
+                result, score = self._match_movie(current_title, media_info.year)
+            elif media_info.type in ["tvshow", "anime"]:
+                result, score = self._match_tvshow(current_title, media_info.year, media_info.season, media_info.episode)
+            else:
+                logger.warning(f"Unknown media type: {media_info.type}")
+                return None, 0
+            
+            # If we found a good match (score >= 60), return it
+            if result and (score >= 60 or current_title == original_title):
+                if current_title != original_title:
+                    logger.info(f"TMDB match found with shortened title: '{current_title}' -> {result.get('title', 'Unknown')} (id: {result.get('tmdb_id')}, score: {score})")
+                return result, score
+            
+            # Keep track of best result (prefer original title, then highest score)
+            if result and score > best_score:
+                best_result = result
+                best_score = score
+                logger.debug(f"TMDB retry: New best result (score: {score})")
+            
+            # If we can't shorten further, break
+            if len(current_words) <= min_word_count:
+                break
+            
+            # Shorten title by removing last word
+            current_words = current_words[:-1]
+            current_title = ' '.join(current_words)
+            logger.debug(f"TMDB retry: Trying shortened title '{current_title}' ({len(current_words)} words)")
+        
+        # Restore original title
+        media_info.title = original_title
+        
+        # Return best result if we found any
+        if best_result:
+            logger.debug(f"TMDB retry: Returning best result with score {best_score}")
+            return best_result, best_score
+        
+        logger.debug(f"TMDB retry: No match found after exhausting retries")
+        return None, 0
+    
+    def _match_movie(self, title: str, year: Optional[int]) -> Tuple[Optional[Dict], int]:
         """Match movie with TMDB"""
         try:
             # Search with title
-            if media_info.year:
+            if year:
                 search_results = self.search.movies(
-                    media_info.title,
-                    year=media_info.year
+                    title,
+                    year=year
                 )
             else:
                 search_results = self.search.movies(
-                    media_info.title
+                    title
                 )
             
             if not search_results or len(search_results.results) < 1:
                 # Try broader search without year
                 search_results = self.search.movies(
-                    media_info.title
+                    title
                 )
 
             best_match = None
@@ -109,7 +158,7 @@ class TMDBMatcher:
                 
                 # Calculate match score
                 score = 0
-                media_title_lower = media_info.title.lower()
+                media_title_lower = title.lower()
                 result_title_lower = result.title.lower()
                 result_original_lower = result.original_title.lower()
                 
@@ -137,11 +186,11 @@ class TMDBMatcher:
                     score += max(similarity, similarity_orig) * 30
                 
                 # Year bonus (if year is available)
-                if media_info.year and result.release_date:
+                if year and result.release_date:
                     result_year = result.release_date.split('-')[0]
-                    if str(media_info.year) == result_year:
+                    if str(year) == result_year:
                         score += 20
-                    elif abs(int(result_year) - media_info.year) <= 2:
+                    elif abs(int(result_year) - year) <= 2:
                         score += 10
 
                 # Length penalty for very different lengths
@@ -160,28 +209,28 @@ class TMDBMatcher:
             return best_match, best_score
         
         except Exception as e:
-            logger.error(f"TMDB match failed for {media_info.title}: {e}")
+            logger.error(f"TMDB match failed for {title}: {e}")
         
         return None, 0
     
-    def _match_tvshow(self, media_info: MediaInfo) -> Tuple[Optional[Dict], int]:
+    def _match_tvshow(self, title: str, year: Optional[int], season: Optional[int], episode: Optional[int]) -> Tuple[Optional[Dict], int]:
         """Match TV show with TMDB"""
         try:
             # Search with title
-            if media_info.year:
+            if year:
                 search_results = self.search.tv_shows(
-                    media_info.title,
-                    release_year=media_info.year
+                    title,
+                    release_year=year
                 )
             else:
                 search_results = self.search.tv_shows(
-                    media_info.title
+                    title
                 )
             
             if not search_results or len(search_results.results) < 1:
                 # Try broader search without year
                 search_results = self.search.tv_shows(
-                    media_info.title
+                    title
                 )
             
             # Improved matching system for TV shows
@@ -194,19 +243,19 @@ class TMDBMatcher:
                 # If we have season/episode info, get episode details
                 episode_data = None
                 season_data = None
-                if media_info.season:
+                if season:
                     try:
-                        if media_info.episode:
+                        if episode:
                             episode_data = self.episode.details(
                                 result.id, 
-                                media_info.season, 
-                                media_info.episode
+                                season, 
+                                episode
                             )
 
-                        if media_info.season:
-                            season_data = self.season.details(result.id, media_info.season)
+                        if season:
+                            season_data = self.season.details(result.id, season)
                     except Exception as ex:
-                        logger.error(f"TMDB TV show match failed for {media_info.title}: {ex}")
+                        logger.error(f"TMDB TV show match failed for {title}: {ex}")
                         pass  # Episode/season details not available
                 
                 current_match = {
@@ -218,8 +267,8 @@ class TMDBMatcher:
                     'genres': [genre.name for genre in details.genres],
                     'episode_data': episode_data,
                     'season_data': season_data,
-                    'season': media_info.season,
-                    'episode': media_info.episode,
+                    'season': season,
+                    'episode': episode,
                     'vote_average': result.vote_average,
                     'poster_path': result.poster_path,
                     'backdrop_path': result.backdrop_path
@@ -227,7 +276,7 @@ class TMDBMatcher:
                 
                 # Calculate match score (similar to movie matching)
                 score = 0
-                media_title_lower = media_info.title.lower()
+                media_title_lower = title.lower()
                 result_title_lower = result.name.lower()
                 result_original_lower = result.original_name.lower()
                 
@@ -255,11 +304,11 @@ class TMDBMatcher:
                     score += max(similarity, similarity_orig) * 30
                 
                 # Year bonus (if year is available)
-                if media_info.year and result.first_air_date:
+                if year and result.first_air_date:
                     result_year = result.first_air_date.split('-')[0]
-                    if str(media_info.year) == result_year:
+                    if str(year) == result_year:
                         score += 20
-                    elif abs(int(result_year) - media_info.year) <= 2:
+                    elif abs(int(result_year) - year) <= 2:
                         score += 10
                 
                 # Length penalty
@@ -278,7 +327,7 @@ class TMDBMatcher:
             return best_match, best_score
         
         except Exception as e:
-            logger.error(f"TMDB TV show match failed for {media_info.title}: {e}")
+            logger.error(f"TMDB TV show match failed for {title}: {e}")
         
         return None, 0
     
