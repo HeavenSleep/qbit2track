@@ -84,11 +84,12 @@ qbit2track/
 - **Title Cleaning**: Selective pattern removal, not aggressive truncation
 - **Language Detection**: Pattern-based with multi-language support
 
-### Upload System
-- **Metadata Mapping**: Category and tag mapping from tracker metadata
-- **Multi-tracker**: Pluggable architecture for different trackers
-- **Progress Tracking**: Detailed upload progress and error reporting
-- **Retry Logic**: Exponential backoff for failed uploads
+### NFO Generation
+- **pymediainfo Integration**: Detailed media file analysis
+- **Technical Specs**: Container, codec, bitrate, resolution details
+- **Audio Details**: Channels, sampling rate, language information
+- **Subtitle Support**: Track parsing and language detection
+- **Fallback Handling**: Graceful degradation when pymediainfo unavailable
 
 ---
 
@@ -104,6 +105,7 @@ qbit2track/
 - [x] **Caching**: TMDB and metadata caching
 - [x] **Progress Tracking**: Progress bars and detailed logging
 - [x] **Error Handling**: Graceful degradation and retry logic
+- [x] **Enhanced NFO Generation**: pymediainfo integration for detailed technical specs
 
 ### 🚧 In Progress
 - [ ] **Additional Trackers**: More private tracker implementations
