@@ -1,0 +1,24 @@
+[center]
+[img]https://image.tmdb.org/t/p/w500{{ poster_path }}[/img]
+
+[size=6][color=#eab308][b]{{ title | title }} ({{ year }})[/b][/color][/size]
+
+[b]Note :[/b] {{ vote_average }}/10
+[b]Genre :[/b] {{ genres|join(', ') }}
+
+[quote]{{ overview }}[/quote]
+
+
+[color=#eab308][b]--- DÉTAILS ---[/b][/color]
+
+[b]Qualité :[/b] {{ resolution }}
+[b]Format :[/b] {{ file_extension|upper if file_extension else 'MKV' }}
+[b]Codec Vidéo :[/b] {{ video_codec }}
+[b]Codec Audio :[/b] {{ audio_codec }}
+[b]Langues :[/b] {{ languages|join(', ') }}
+[b]Sous-titres :[/b] {{ subtitle_languages|join(', ') }}
+[b]Taille :[/b] {{ size|filesizeformat }}
+
+
+[i]Généré par Qbit2Track[/i]
+[/center]
