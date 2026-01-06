@@ -1,10 +1,14 @@
 # Import required modules
 from dataclasses import dataclass
+import json
 import logging
 import time
+from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 import requests
+import yaml
+from jinja2 import Environment, FileSystemLoader, Template
 
 from qbit2track.uploader import RateLimiter, UploadResult
 
@@ -21,13 +25,17 @@ class LaCaleMeta:
 class LaCaleUploader:
     """Specialized uploader for La Cale tracker"""
     
-    def __init__(self, passkey: str):
+    def __init__(self, passkey: str, config_path: Optional[str] = None):
         self.passkey = passkey
         self.base_url = "https://la-cale.space"
         self.rate_limiter = RateLimiter(requests_per_minute=30)
         self._meta_cache: Optional[LaCaleMeta] = None
         self._meta_cache_time: float = 0
         self._meta_cache_duration = 3600  # Cache for 1 hour
+        
+        # Load configuration
+        self.config = self._load_config(config_path)
+        self.templates = self._load_templates()
         
         # La Cale specific category mappings based on actual API
         self._category_mapping = {
@@ -125,6 +133,207 @@ class LaCaleUploader:
             "documentary": "documentaire",
             "spectacle": "cmjudwq2v0018uyruhuylsy3q"   # Spectacle
         }
+    
+    def _load_config(self, config_path: Optional[str]) -> Dict[str, Any]:
+        """Load La Cale configuration from YAML file"""
+        if config_path:
+            config_file = Path(config_path)
+        else:
+            # Default to the example config in the package
+            config_file = Path(__file__).parent.parent.parent / "config" / "lacale_config.example.yaml"
+        
+        if not config_file.exists():
+            logger.warning(f"La Cale config file not found: {config_file}")
+            return {}
+        
+        try:
+            with open(config_file, 'r', encoding='utf-8') as f:
+                config = yaml.safe_load(f)
+            
+            # Get La Cale specific configuration
+            api_configs = config.get('api_configs', {})
+            la_cale_config = api_configs.get('la_cale', {})
+            
+            logger.info(f"Loaded La Cale configuration from {config_file}")
+            return la_cale_config
+            
+        except Exception as e:
+            logger.error(f"Failed to load La Cale config: {e}")
+            return {}
+    
+    def _load_templates(self) -> Dict[str, Template]:
+        """Load Jinja2 templates for La Cale"""
+        templates = {}
+        
+        try:
+            # Get templates directory
+            templates_dir = Path(__file__).parent.parent.parent / "config" / "lacale" / "templates"
+            
+            if not templates_dir.exists():
+                logger.warning(f"Templates directory not found: {templates_dir}")
+                return templates
+            
+            # Setup Jinja2 environment
+            env = Environment(
+                loader=FileSystemLoader(str(templates_dir)),
+                autoescape=True
+            )
+            
+            # Add custom filters
+            env.filters['filesizeformat'] = self._filesizeformat
+            
+            # Load description template
+            try:
+                templates['description'] = env.get_template('description.j2')
+                logger.info("Loaded description template")
+            except Exception as e:
+                logger.warning(f"Failed to load description template: {e}")
+            
+            return templates
+            
+        except Exception as e:
+            logger.error(f"Failed to setup templates: {e}")
+            return {}
+    
+    def _filesizeformat(self, size_bytes: Any) -> str:
+        """Format file size in human readable format"""
+        try:
+            if not size_bytes:
+                return "Unknown"
+            
+            size = int(size_bytes)
+            for unit in ['B', 'KB', 'MB', 'GB', 'TB']:
+                if size < 1024.0:
+                    return f"{size:.1f} {unit}"
+                size /= 1024.0
+            return f"{size:.1f} PB"
+        except (ValueError, TypeError):
+            return "Unknown"
+    
+    def generate_torrent_name(self, media_info: Dict[str, Any], torrent_data: Dict[str, Any]) -> str:
+        """Generate torrent name using Jinja2 template"""
+        try:
+            # Get template for media type
+            media_type = media_info.get('type', 'movie')
+            torrent_names = self.config.get('torrent_names', {})
+            
+            template_str = torrent_names.get(media_type)
+            if not template_str:
+                # Fallback to simple naming
+                return torrent_data.get('name', media_info.get('title', 'Unknown'))
+            
+            # Create template context
+            context = self._create_template_context(media_info, torrent_data)
+            
+            # Render template
+            template = Template(template_str)
+            return template.render(**context)
+            
+        except Exception as e:
+            logger.error(f"Failed to generate torrent name: {e}")
+            return torrent_data.get('name', media_info.get('title', 'Unknown'))
+    
+    def generate_description(self, media_info: Dict[str, Any], torrent_data: Dict[str, Any]) -> str:
+        """Generate description using Jinja2 template"""
+        try:
+            template = self.templates.get('description')
+            if not template:
+                # Fallback to basic description
+                return self._generate_basic_description(media_info, torrent_data)
+            
+            # Create template context
+            context = self._create_template_context(media_info, torrent_data)
+            
+            # Render template
+            return template.render(**context)
+            
+        except Exception as e:
+            logger.error(f"Failed to generate description: {e}")
+            return self._generate_basic_description(media_info, torrent_data)
+    
+    def _create_template_context(self, media_info: Dict[str, Any], torrent_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Create context for template rendering"""
+        context = {}
+        
+        # Basic media info
+        context.update({
+            'title': media_info.get('title', ''),
+            'year': media_info.get('year', ''),
+            'type': media_info.get('type', 'movie'),
+            'resolution': media_info.get('resolution', ''),
+            'video_codec': media_info.get('video_codec', ''),
+            'audio_codec': media_info.get('audio_codec', ''),
+            'languages': media_info.get('languages', []),
+            'hdr': media_info.get('hdr', ''),
+            'source': media_info.get('source', 'WEB'),
+            'team': torrent_data.get('tags', ['HEAVEN'])[0] if torrent_data.get('tags') else 'HEAVEN',
+            'is_multi': len(media_info.get('languages', [])) > 1
+        })
+        
+        # TMDB information
+        tmdb_info = media_info.get('tmdb_info', {})
+        context.update({
+            'tmdb_id': tmdb_info.get('id'),
+            'imdb_id': tmdb_info.get('imdb_id'),
+            'overview': tmdb_info.get('overview', ''),
+            'genres': tmdb_info.get('genres', []),
+            'vote_average': tmdb_info.get('vote_average', 0),
+            'poster_path': tmdb_info.get('poster_path', ''),
+            'backdrop_path': tmdb_info.get('backdrop_path', ''),
+            'runtime': tmdb_info.get('runtime', 0)
+        })
+        
+        # TV show specific
+        if media_info.get('type') in ['tvshow', 'anime']:
+            context.update({
+                'season': media_info.get('season', 0),
+                'episode': media_info.get('episode', 0)
+            })
+        
+        # Torrent data
+        context.update({
+            'size': torrent_data.get('size', 0),
+            'hash': torrent_data.get('hash', ''),
+            'category': torrent_data.get('category', ''),
+            'tags': torrent_data.get('tags', [])
+        })
+        
+        # File information
+        files = torrent_data.get('files', [])
+        if files:
+            main_file = files[0]  # Assume first file is main
+            context.update({
+                'file_extension': Path(main_file.get('name', '')).suffix[1:] if main_file.get('name') else 'mkv'
+            })
+        
+        return context
+    
+    def _generate_basic_description(self, media_info: Dict[str, Any], torrent_data: Dict[str, Any]) -> str:
+        """Generate basic description without templates"""
+        description_parts = []
+        
+        # Add TMDB overview
+        tmdb_info = media_info.get('tmdb_info', {})
+        if tmdb_info.get('overview'):
+            description_parts.append(tmdb_info['overview'])
+        
+        # Add technical details
+        tech_details = []
+        if media_info.get('resolution'):
+            tech_details.append(f"Resolution: {media_info['resolution']}")
+        if media_info.get('video_codec'):
+            tech_details.append(f"Video: {media_info['video_codec']}")
+        if media_info.get('audio_codec'):
+            tech_details.append(f"Audio: {media_info['audio_codec']}")
+        if media_info.get('languages'):
+            tech_details.append(f"Languages: {', '.join(media_info['languages'])}")
+        if media_info.get('hdr'):
+            tech_details.append(f"HDR: {media_info['hdr']}")
+        
+        if tech_details:
+            description_parts.append("\n\nTechnical Details:\n" + "\n".join(tech_details))
+        
+        return "\n".join(description_parts)
     
     def fetch_meta(self) -> LaCaleMeta:
         """Fetch metadata from La Cale API"""
@@ -350,29 +559,6 @@ class LaCaleUploader:
                     message="No torrent file found in metadata directory"
                 )
             
-            # Create description from TMDB info
-            description = ""
-            if 'tmdb_info' in media_info:
-                tmdb_info = media_info['tmdb_info']
-                if tmdb_info.get('overview'):
-                    description = tmdb_info['overview']
-                
-                # Add technical details to description
-                tech_details = []
-                if media_info.get('resolution'):
-                    tech_details.append(f"Resolution: {media_info['resolution']}")
-                if media_info.get('video_codec'):
-                    tech_details.append(f"Video: {media_info['video_codec']}")
-                if media_info.get('audio_codec'):
-                    tech_details.append(f"Audio: {media_info['audio_codec']}")
-                if media_info.get('languages'):
-                    tech_details.append(f"Languages: {', '.join(media_info['languages'])}")
-                if media_info.get('hdr'):
-                    tech_details.append(f"HDR: {media_info['hdr']}")
-                
-                if tech_details:
-                    description += f"\n\nTechnical Details:\n" + "\n".join(tech_details)
-            
             # Determine TMDB type
             tmdb_type = None
             if media_info.get('type') == 'movie':
@@ -386,8 +572,14 @@ class LaCaleUploader:
                 tmdb_id = str(media_info['tmdb_id'])
             
             # Perform upload
+            # Generate torrent name using template
+            torrent_name = self.generate_torrent_name(media_info, torrent_data)
+            
+            # Generate description using template
+            description = self.generate_description(media_info, torrent_data)
+            
             return self.upload_torrent(
-                title=torrent_data.get('name', media_info.get('title', 'Unknown')),
+                title=torrent_name,
                 category_id=category_id,
                 torrent_file_path=torrent_file,
                 description=description if description.strip() else None,
