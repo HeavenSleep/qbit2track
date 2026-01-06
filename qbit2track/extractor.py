@@ -153,7 +153,14 @@ class TorrentExtractor:
         
         # Create NFO file
         if self.config.output.create_nfo:
-            self.nfo_generator.create_nfo_file(torrent_data, output_dir, tmdb_data)
+            # Find the largest media file for pymediainfo analysis
+            media_file_path = None
+            if torrent.files:
+                # Sort files by size and get the largest (likely the main video file)
+                largest_file = max(torrent.files, key=lambda f: f.size)
+                media_file_path = Path(torrent.content_path) / largest_file.name
+            
+            self.nfo_generator.create_nfo_file(torrent_data, output_dir, tmdb_data, media_file_path)
         
         # Create torrent file
         if self.config.output.create_torrent:
