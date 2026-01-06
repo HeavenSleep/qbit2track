@@ -136,6 +136,8 @@ config/local_*.yaml
 logs/
 .DS_Store
 Thumbs.db
+test_data/
+test_output/
 
 # IDE
 !.vscode/

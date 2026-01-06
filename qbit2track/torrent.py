@@ -72,6 +72,7 @@ class TorrentManager:
             bar.update(1)  # Complete
 
         logger.info(f"Created torrent: {torrent_file}")
+        return torrent_file
     
     def _sanitize_filename(self, filename: str) -> str:
         """Sanitize filename for filesystem"""
