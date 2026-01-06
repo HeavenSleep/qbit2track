@@ -139,8 +139,8 @@ class LaCaleUploader:
         if config_path:
             config_file = Path(config_path)
         else:
-            # Default to the example config in the package
-            config_file = Path(__file__).parent.parent.parent / "config" / "lacale_config.example.yaml"
+            # Default to new config location in trackers/config
+            config_file = Path(__file__).parent / "config" / "lacale.yaml"
         
         if not config_file.exists():
             logger.warning(f"La Cale config file not found: {config_file}")
@@ -166,8 +166,8 @@ class LaCaleUploader:
         templates = {}
         
         try:
-            # Get templates directory
-            templates_dir = Path(__file__).parent.parent.parent / "config" / "lacale" / "templates"
+            # Get templates directory - new location in trackers/templates
+            templates_dir = Path(__file__).parent / "templates" / "lacale"
             
             if not templates_dir.exists():
                 logger.warning(f"Templates directory not found: {templates_dir}")
@@ -266,8 +266,8 @@ class LaCaleUploader:
             'languages': media_info.get('languages', []),
             'hdr': media_info.get('hdr', ''),
             'source': media_info.get('source', 'WEB'),
-            'team': torrent_data.get('tags', ['HEAVEN'])[0] if torrent_data.get('tags') else 'HEAVEN',
-            'is_multi': len(media_info.get('languages', [])) > 1
+            'team': media_info.get('team', 'HEAVEN'),
+            'is_multi': len(media_info.get('languages', [])) > 1 or media_info.get('is_multi', False)
         })
         
         # TMDB information
