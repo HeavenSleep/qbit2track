@@ -160,21 +160,110 @@ class TorrentExtractor:
                 if networks:
                     primary_network = networks[0].get('name', '')
                     if primary_network:
-                        # Append network to source (e.g., "WEB-DL (Netflix)")
-                        media_info.source = f"{media_info.source} ({primary_network})"
-                        logger.debug(f"Enhanced source with network: {media_info.source}")
+                        # Get shortened platform code
+                        platform_code = self._get_platform_code(primary_network)
+                        if platform_code:
+                            # Append platform code to source (e.g., "WEB-DL.NF")
+                            media_info.source = f"{media_info.source}.{platform_code}"
+                            logger.debug(f"Enhanced source with network: {media_info.source}")
             
             # For movies, check production companies
             elif media_info.type == 'movie' and tmdb_data.get('production_companies'):
                 companies = tmdb_data.get('production_companies', [])
                 # Look for major streaming platforms
-                streaming_companies = ['Netflix', 'Amazon', 'Disney+', 'HBO Max', 'Apple TV+', 'Paramount+']
+                streaming_companies = ['Netflix', 'Amazon', 'Disney', 'HBO', 'Apple', 'Paramount', 'Peacock', 'Hulu']
                 for company in companies:
                     company_name = company.get('name', '')
                     if any(stream in company_name for stream in streaming_companies):
-                        media_info.source = f"{media_info.source} ({company_name})"
-                        logger.debug(f"Enhanced source with production company: {media_info.source}")
-                        break
+                        # Get shortened platform code
+                        platform_code = self._get_platform_code(company_name)
+                        if platform_code:
+                            media_info.source = f"{media_info.source}.{platform_code}"
+                            logger.debug(f"Enhanced source with production company: {media_info.source}")
+                            break
+    
+    def _get_platform_code(self, platform_name: str) -> str:
+        """Convert platform name to shortened code"""
+        platform_mapping = {
+            # Streaming Services
+            'Netflix': 'NF',
+            'Amazon Prime Video': 'AMZ',
+            'Amazon': 'AMZ',
+            'Prime Video': 'AMZ',
+            'Disney+': 'DSN',
+            'Disney': 'DSN',
+            'Disney Plus': 'DSN',
+            'HBO Max': 'HBO',
+            'HBO': 'HBO',
+            'Apple TV+': 'APTV',
+            'Apple TV': 'APTV',
+            'Apple': 'APTV',
+            'Paramount+': 'PAR',
+            'Paramount Plus': 'PAR',
+            'Paramount': 'PAR',
+            'Peacock': 'PCOK',
+            'Hulu': 'HULU',
+            'Star+': 'STAR',
+            'Star Plus': 'STAR',
+            
+            # TV Networks
+            'HBO': 'HBO',
+            'Showtime': 'SHO',
+            'CBS': 'CBS',
+            'NBC': 'NBC',
+            'ABC': 'ABC',
+            'FOX': 'FOX',
+            'BBC': 'BBC',
+            'ITV': 'ITV',
+            'Channel 4': 'C4',
+            'Sky': 'SKY',
+            'FX': 'FX',
+            'AMC': 'AMC',
+            'USA': 'USA',
+            'TNT': 'TNT',
+            'TBS': 'TBS',
+            'Syfy': 'SYFY',
+            'MTV': 'MTV',
+            'Comedy Central': 'CC',
+            'Cartoon Network': 'CN',
+            'Adult Swim': 'AS',
+            'Discovery': 'DSC',
+            'National Geographic': 'NG',
+            'History': 'HIST',
+            'A&E': 'AE',
+            'Lifetime': 'LIFE',
+            
+            # International
+            'Crunchyroll': 'CR',
+            'Funimation': 'FUNI',
+            'VRV': 'VRV',
+            'Tubi': 'TUBI',
+            'Pluto TV': 'PLUTO',
+            'Roku': 'ROKU',
+            'Vudu': 'VUDU'
+        }
+        
+        # Try exact match first
+        if platform_name in platform_mapping:
+            return platform_mapping[platform_name]
+        
+        # Try partial match
+        for full_name, code in platform_mapping.items():
+            if full_name.lower() in platform_name.lower() or platform_name.lower() in full_name.lower():
+                return code
+        
+        # Fallback: create shortened version
+        words = platform_name.split()
+        if len(words) >= 2:
+            # Take first letter of each word (max 3 chars)
+            code = ''.join(word[0].upper() for word in words[:3])
+            return code
+        elif len(platform_name) >= 3:
+            # Take first 3 characters
+            return platform_name[:3].upper()
+        else:
+            # Return uppercase version
+            return platform_name.upper()
     
     def _get_default_team(self) -> str:
         """Get default team from configuration or use default"""
