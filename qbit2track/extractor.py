@@ -14,6 +14,7 @@ from .models import TorrentData
 from .media import FileAnalyzer, FilenameAnalyzer, TMDBMatcher
 from .torrent import TorrentManager, MetadataManager
 from .nfo import NFOGenerator
+from .trackers.lacale import LaCaleUploader
 
 
 logger = logging.getLogger(__name__)
@@ -44,7 +45,8 @@ class TorrentExtractor:
                    update_tracker: Optional[str] = None,
                    update_comment: Optional[str] = None,
                    update_tags: Optional[str] = None,
-                   update_category: Optional[str] = None) -> Dict[str, int]:
+                   update_category: Optional[str] = None,
+                   tracker_naming: Optional[str] = None) -> Dict[str, int]:
         """Extract all torrents from qBittorrent"""
         results = {'success': 0, 'failed': 0}
         
@@ -75,7 +77,7 @@ class TorrentExtractor:
                 try:
                     logger.info(f"[{results['success'] + 1} / {results['failed']} / {len(torrents)}] Processing: {torrent.name}")
                     self._extract_single_torrent(
-                        torrent, dry_run, update_tracker, update_comment, update_tags, update_category
+                        torrent, dry_run, update_tracker, update_comment, update_tags, update_category, tracker_naming
                     )
                     results['success'] += 1
                     logger.info(f"Processed: {torrent.name}")
@@ -93,7 +95,8 @@ class TorrentExtractor:
                               update_tracker: Optional[str] = None,
                               update_comment: Optional[str] = None,
                               update_tags: Optional[str] = None,
-                              update_category: Optional[str] = None):
+                              update_category: Optional[str] = None,
+                              tracker_naming: Optional[str] = None):
         """Extract a single torrent"""
         # Analyze media information
         media_info = self.filename_analyzer.analyze_filename(
@@ -143,12 +146,58 @@ class TorrentExtractor:
             torrent_data.category = update_category
             logger.info(f"Updating category to: {update_category}")
         
+        # Apply tracker-specific naming if specified
+        tracker_name = None
+        if tracker_naming:
+            try:
+                if tracker_naming.lower() == 'lacale':
+                    # Initialize La Cale uploader for naming
+                    la_cale_uploader = LaCaleUploader('dummy_passkey')
+                    
+                    # Prepare media info dict for template
+                    media_info_dict = {
+                        'title': media_info.title,
+                        'year': media_info.year,
+                        'type': media_info.type,
+                        'resolution': media_info.resolution,
+                        'video_codec': media_info.video_codec,
+                        'audio_codec': media_info.audio_codec,
+                        'languages': media_info.languages,
+                        'hdr': media_info.hdr,
+                        'source': media_info.source,
+                        'team': torrent_data.tags[0] if torrent_data.tags else 'HEAVEN',
+                        'tmdb_info': tmdb_data if tmdb_data else {}
+                    }
+                    
+                    # Prepare torrent data dict for template
+                    torrent_data_dict = {
+                        'name': torrent_data.name,
+                        'size': torrent_data.size,
+                        'tags': torrent_data.tags,
+                        'files': torrent_data.files,
+                        'hash': torrent_data.hash,
+                        'category': torrent_data.category
+                    }
+                    
+                    # Generate tracker-specific name
+                    tracker_name = la_cale_uploader.generate_torrent_name(media_info_dict, torrent_data_dict)
+                    
+                    # Update torrent data name
+                    torrent_data.name = tracker_name
+                    logger.info(f"Applied {tracker_naming} naming: {tracker_name}")
+                else:
+                    logger.warning(f"Unknown tracker: {tracker_naming}")
+            except Exception as e:
+                logger.error(f"Failed to apply {tracker_naming} naming: {e}")
+                logger.info("Using original torrent name")
+        
         if dry_run:
             logger.info(f"DRY RUN: Would extract {torrent.name}")
             return
         
         # Create output directory
-        output_dir = Path(self.config.output.output_dir) / self._sanitize_filename(torrent.name)
+        output_name = tracker_name if tracker_naming else torrent.name
+        output_dir = Path(self.config.output.output_dir) / self._sanitize_filename(output_name)
         output_dir.mkdir(parents=True, exist_ok=True)
         
         # Create NFO file

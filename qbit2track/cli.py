@@ -44,10 +44,11 @@ def cli(ctx, config: Optional[str], verbose: bool):
 @click.option('--update-comment', help='Update comment for all extracted torrents')
 @click.option('--update-tags', help='Update tags for all extracted torrents (comma-separated)')
 @click.option('--update-category', help='Update category for all extracted torrents')
+@click.option('--tracker-naming', help='Use tracker-specific naming pattern for torrent files')
 @click.pass_context
 def extract(ctx, output_dir: Optional[str], filter_tags: Optional[str], filter_category: Optional[str], 
            dry_run: bool, update_tracker: Optional[str], update_comment: Optional[str], 
-           update_tags: Optional[str], update_category: Optional[str]):
+           update_tags: Optional[str], update_category: Optional[str], tracker_naming: Optional[str]):
     """Extract torrents from qBittorrent"""
     config = ctx.obj['config']
     
@@ -69,7 +70,8 @@ def extract(ctx, output_dir: Optional[str], filter_tags: Optional[str], filter_c
             update_tracker=update_tracker,
             update_comment=update_comment,
             update_tags=update_tags.split(',') if update_tags else None,
-            update_category=update_category
+            update_category=update_category,
+            tracker_naming=tracker_naming
         )
         
         # Insert full width separator line without wrapping
