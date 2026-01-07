@@ -28,6 +28,7 @@
 - **TMDB Matcher**: Movie/TV show matching with caching and retry logic
 - **Uploader**: Multi-tracker upload with metadata mapping
 - **CLI**: Command-line interface with progress tracking
+- **Naming System**: Unified naming module for extract and upload commands
 
 ### Key Design Principles
 - **Modular**: Each component is independent and testable
@@ -51,6 +52,7 @@ qbit2track/
 ├── cli.py              # Command-line interface
 ├── config.py            # Configuration management
 ├── extractor.py          # qBittorrent integration
+├── naming.py            # Unified naming system (NEW)
 ├── media/               # Media processing modules
 │   ├── filename_analyzer.py
 │   ├── tmdb_matcher.py
@@ -67,6 +69,7 @@ qbit2track/
 - **API Keys**: `config/api_config.yaml` (gitignored)
 - **Examples**: Complete examples in `config/`
 - **Validation**: Config validation on startup
+- **Team Configuration**: `Q2T_DEFAULT_TEAM` environment variable
 
 ---
 
@@ -91,6 +94,14 @@ qbit2track/
 - **Subtitle Support**: Track parsing and language detection
 - **Fallback Handling**: Graceful degradation when pymediainfo unavailable
 
+### Naming System (NEW)
+- **Dedicated Module**: `qbit2track/naming.py` for unified naming logic
+- **PlatformMapper**: 50+ streaming services and networks (Netflix→NF, Disney+→DSN)
+- **MediaAnalyzer**: pymediainfo integration with codec/resolution normalization
+- **NamingContext**: Unified template context creation for extract and upload
+- **Enhanced Source**: TMDB platform integration with WEB-DL.{PLATFORM} format
+- **Team Configuration**: Configurable defaults with `Q2T_DEFAULT_TEAM` override
+
 ---
 
 ## 🚀 Current Features
@@ -106,6 +117,11 @@ qbit2track/
 - [x] **Progress Tracking**: Progress bars and detailed logging
 - [x] **Error Handling**: Graceful degradation and retry logic
 - [x] **Enhanced NFO Generation**: pymediainfo integration for detailed technical specs
+- [x] **Tracker-Specific Naming**: Template-based naming with platform codes
+- [x] **Dedicated Naming Module**: Unified naming system for extract and upload
+- [x] **Platform Code Mapping**: 50+ streaming services and networks
+- [x] **Media Analysis Enhancement**: pymediainfo integration with codec/resolution normalization
+- [x] **Source Enhancement**: TMDB platform integration with WEB-DL.{PLATFORM} format
 
 ### 🚧 In Progress
 - [ ] **Additional Trackers**: More private tracker implementations
@@ -115,7 +131,15 @@ qbit2track/
 - [ ] **Database Integration**: SQLite for metadata persistence
 - [ ] **Testing Suite**: Comprehensive unit and integration tests
 
-### 📋 Planned
+### � In Progress
+- [ ] **Additional Trackers**: More private tracker implementations
+- [ ] **Advanced Matching**: Machine learning for title matching
+- [ ] **Batch Operations**: Bulk upload and management
+- [ ] **Web Interface**: Optional web dashboard
+- [ ] **Database Integration**: SQLite for metadata persistence
+- [ ] **Testing Suite**: Comprehensive unit and integration tests
+
+### �📋 Planned
 - [ ] **Configuration UI**: Web-based configuration management
 - [ ] **API Rate Limiting**: Intelligent rate limiting for TMDB
 - [ ] **File Validation**: Media file integrity checking
