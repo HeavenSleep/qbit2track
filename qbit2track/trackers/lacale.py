@@ -236,7 +236,8 @@ class LaCaleUploader(DefaultUploader):
             template = Template(template_str)
             torrent_name = template.render(**naming_context)
 
-            # Remove any double .
+            # Clean torrent name
+            torrent_name = torrent_name.replace(" ", ".")
             torrent_name = torrent_name.replace("..", ".")
             
             logger.info(f"Generated torrent name: {torrent_name}")

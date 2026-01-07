@@ -269,11 +269,11 @@ class NamingContext:
         """Create enhanced context for tracker naming templates"""
         return {
             # Basic media info
-            'title': media_info.title,
-            'year': media_info.year,
+            'title': tmdb_data.get('title', media_info.title),
+            'year': tmdb_data.get('release_date', media_info.year),
             'type': media_info.type,
-            'season': media_info.season,
-            'episode': media_info.episode,
+            'season': f'{media_info.season:02d}' if media_info.season else '',
+            'episode': f'{media_info.episode:02d}' if media_info.episode else '',
             
             # Technical details
             'resolution': media_info.resolution,
