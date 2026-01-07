@@ -60,6 +60,7 @@ class AppConfig:
     """Application configuration"""
     multi_language: str = field(default_factory=lambda: os.getenv("MULTI_LANGUAGE", "Multi"))
     cache_expiry: int = field(default_factory=lambda: int(os.getenv("CACHE_EXPIRY", "86400")))
+    default_team: str = field(default_factory=lambda: os.getenv("Q2T_DEFAULT_TEAM", "Q2TBHV"))
 
 
 @dataclass

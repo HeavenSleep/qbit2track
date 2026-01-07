@@ -2,6 +2,7 @@
 Main torrent extraction and processing logic
 """
 import logging
+import os
 import traceback
 from datetime import datetime
 from pathlib import Path
@@ -15,6 +16,14 @@ from .media import FileAnalyzer, FilenameAnalyzer, TMDBMatcher
 from .torrent import TorrentManager, MetadataManager
 from .nfo import NFOGenerator
 from .trackers.lacale import LaCaleUploader
+
+# Import pymediainfo if available
+try:
+    from pymediainfo import MediaInfo
+    PYMEDIAINFO_AVAILABLE = True
+except ImportError:
+    PYMEDIAINFO_AVAILABLE = False
+    MediaInfo = None
 
 
 logger = logging.getLogger(__name__)
@@ -38,6 +47,139 @@ class TorrentExtractor:
         self.torrent_manager = TorrentManager()
         self.metadata_manager = MetadataManager()
         self.nfo_generator = NFOGenerator()
+        
+        # Default team configuration
+        self.default_team = config.app.default_team
+    
+    def _enhance_media_info_with_pymediainfo(self, media_info, torrent) -> None:
+        """Enhance media info with pymediainfo technical details"""
+        if not PYMEDIAINFO_AVAILABLE:
+            logger.warning("pymediainfo not available, skipping technical analysis")
+            return
+        
+        try:
+            # Find the largest media file
+            largest_file = None
+            if torrent.files:
+                largest_file = max(torrent.files, key=lambda f: f.size)
+            
+            if not largest_file:
+                logger.warning("No files found for pymediainfo analysis")
+                return
+            
+            file_path = Path(torrent.content_path) / largest_file.name
+            if not file_path.exists():
+                logger.warning(f"Media file not found: {file_path}")
+                return
+            
+            logger.debug(f"Analyzing media file with pymediainfo: {file_path}")
+            media_data = MediaInfo.parse(str(file_path))
+            
+            # Extract video codec information
+            if media_data.video_tracks:
+                video_track = media_data.video_tracks[0]  # Use first video track
+                if video_track.format and not media_info.video_codec:
+                    # Normalize codec names
+                    codec = video_track.format.upper()
+                    if codec in ['AVC', 'H264']:
+                        media_info.video_codec = 'x264'
+                    elif codec in ['HEVC', 'H265']:
+                        media_info.video_codec = 'x265'
+                    elif codec == 'VP9':
+                        media_info.video_codec = 'VP9'
+                    elif codec == 'AV1':
+                        media_info.video_codec = 'AV1'
+                    else:
+                        media_info.video_codec = codec.lower()
+                
+                # Extract and normalize resolution
+                if video_track.width and video_track.height and not media_info.resolution:
+                    width, height = video_track.width, video_track.height
+                    media_info.resolution = self._normalize_resolution(width, height)
+                
+                logger.debug(f"Video: {media_info.video_codec}, Resolution: {media_info.resolution}")
+            
+            # Extract audio codec information
+            if media_data.audio_tracks and not media_info.audio_codec:
+                audio_track = media_data.audio_tracks[0]  # Use first audio track
+                if audio_track.format:
+                    # Normalize audio codec names
+                    codec = audio_track.format.upper()
+                    if codec in ['AAC']:
+                        media_info.audio_codec = 'AAC'
+                    elif codec in ['AC-3', 'AC3', 'DOLBY DIGITAL']:
+                        media_info.audio_codec = 'AC3'
+                    elif codec in ['E-AC-3', 'EAC3', 'DD+']:
+                        media_info.audio_codec = 'EAC3'
+                    elif codec in ['DTS']:
+                        media_info.audio_codec = 'DTS'
+                    elif codec in ['FLAC']:
+                        media_info.audio_codec = 'FLAC'
+                    elif codec in ['MP3']:
+                        media_info.audio_codec = 'MP3'
+                    elif codec in ['OPUS']:
+                        media_info.audio_codec = 'OPUS'
+                    elif codec in ['TRUEHD']:
+                        media_info.audio_codec = 'TrueHD'
+                    else:
+                        media_info.audio_codec = codec.lower()
+                
+                logger.debug(f"Audio: {media_info.audio_codec}")
+            
+        except Exception as e:
+            logger.error(f"Failed to analyze media with pymediainfo: {e}")
+    
+    def _normalize_resolution(self, width: int, height: int) -> str:
+        """Convert pixel resolution to standard format (e.g., 1920x1080 -> 1080p)"""
+        if width >= 3840 or height >= 2160:
+            return "2160p"  # 4K
+        elif width >= 2560 or height >= 1440:
+            return "1440p"  # 2K
+        elif width >= 1920 or height >= 1080:
+            return "1080p"  # Full HD
+        elif width >= 1280 or height >= 720:
+            return "720p"   # HD
+        elif width >= 854 or height >= 480:
+            return "480p"   # SD
+        elif width >= 640 or height >= 360:
+            return "360p"   # VGA
+        else:
+            return f"{height}p"  # Fallback to height
+    
+    def _enhance_source_with_tmdb(self, media_info, tmdb_data) -> None:
+        """Enhance source information with TMDB platform/network data"""
+        if not media_info.source or media_info.source.lower() in ['web', 'unknown']:
+            # Default to WEB-DL if no source specified
+            media_info.source = "WEB-DL"
+        
+        # Try to get platform/network information from TMDB
+        if tmdb_data:
+            # For TV shows, check network information
+            if media_info.type in ['tvshow', 'anime'] and tmdb_data.get('networks'):
+                networks = tmdb_data.get('networks', [])
+                if networks:
+                    primary_network = networks[0].get('name', '')
+                    if primary_network:
+                        # Append network to source (e.g., "WEB-DL (Netflix)")
+                        media_info.source = f"{media_info.source} ({primary_network})"
+                        logger.debug(f"Enhanced source with network: {media_info.source}")
+            
+            # For movies, check production companies
+            elif media_info.type == 'movie' and tmdb_data.get('production_companies'):
+                companies = tmdb_data.get('production_companies', [])
+                # Look for major streaming platforms
+                streaming_companies = ['Netflix', 'Amazon', 'Disney+', 'HBO Max', 'Apple TV+', 'Paramount+']
+                for company in companies:
+                    company_name = company.get('name', '')
+                    if any(stream in company_name for stream in streaming_companies):
+                        media_info.source = f"{media_info.source} ({company_name})"
+                        logger.debug(f"Enhanced source with production company: {media_info.source}")
+                        break
+    
+    def _get_default_team(self) -> str:
+        """Get default team from configuration or use default"""
+        # Use configured default
+        return self.default_team
     
     def extract_all(self, dry_run: bool = False,
                    tags: Optional[List[str]] = None,
@@ -106,6 +248,16 @@ class TorrentExtractor:
         # Match with TMDB
         tmdb_data = self.tmdb_matcher.match_media(media_info)
         
+        # Enhance media info with pymediainfo technical details
+        self._enhance_media_info_with_pymediainfo(media_info, torrent)
+        
+        # Enhance source information with TMDB data
+        self._enhance_source_with_tmdb(media_info, tmdb_data)
+        
+        # Ensure team information is set
+        if not media_info.team:
+            media_info.team = self._get_default_team()
+        
         # Create torrent data object
         torrent_data = TorrentData(
             hash=torrent.hash,
@@ -154,7 +306,7 @@ class TorrentExtractor:
                     # Initialize La Cale uploader for naming
                     la_cale_uploader = LaCaleUploader('dummy_passkey')
                     
-                    # Prepare media info dict for template
+                    # Prepare enhanced media info dict for template
                     media_info_dict = {
                         'title': media_info.title,
                         'year': media_info.year,
@@ -165,7 +317,8 @@ class TorrentExtractor:
                         'languages': media_info.languages,
                         'hdr': media_info.hdr,
                         'source': media_info.source,
-                        'team': torrent_data.tags[0] if torrent_data.tags else 'HEAVEN',
+                        'team': media_info.team or self._get_default_team(),
+                        'is_multi': len(media_info.languages) > 1,
                         'tmdb_info': tmdb_data if tmdb_data else {}
                     }
                     
