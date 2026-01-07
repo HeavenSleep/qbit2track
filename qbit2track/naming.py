@@ -179,8 +179,16 @@ class MediaAnalyzer:
             if not largest_file:
                 logger.warning("No files found for pymediainfo analysis")
                 return
+
+            # Determine if content_path is a file or directory
+            content_path_obj = Path(content_path)
+            if content_path_obj.is_file():
+                # content_path is the actual media file
+                file_path = content_path_obj
+            else:
+                # content_path is a directory, find largest file
+                file_path = content_path_obj / largest_file.get('name', '')
             
-            file_path = Path(content_path) / largest_file.get('name', '')
             if not file_path.exists():
                 logger.warning(f"Media file not found: {file_path}")
                 return
