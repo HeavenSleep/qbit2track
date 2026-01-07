@@ -6,8 +6,6 @@ import os
 from pathlib import Path
 from typing import Dict, List, Optional, Any
 
-from pymediainfo import MediaInfo as PyMediaInfo
-
 logger = logging.getLogger(__name__)
 
 # Import pymediainfo if available

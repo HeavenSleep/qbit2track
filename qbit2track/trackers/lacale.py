@@ -17,6 +17,8 @@ from ..models import TorrentData
 from ..naming import NamingContext
 from ..uploader import RateLimiter, UploadResult
 
+from .default import DefaultUploader
+
 
 logger = logging.getLogger(__name__)
 
@@ -27,7 +29,7 @@ class LaCaleMeta:
     tag_groups: List[Dict[str, Any]]
     ungrouped_tags: List[Dict[str, Any]]
 
-class LaCaleUploader:
+class LaCaleUploader(DefaultUploader):
     """Specialized uploader for La Cale tracker"""
     
     def __init__(self, passkey: str, config_path: Optional[str] = None):
@@ -228,7 +230,7 @@ class LaCaleUploader:
             template_str = torrent_names.get(media_type)
             if not template_str:
                 # Fallback to simple naming
-                return naming_context.get('title', 'Unknown')
+                template_str = self.default_config.get('torrent_names', {}).get(media_type) 
             
             # Render template
             template = Template(template_str)
@@ -236,10 +238,9 @@ class LaCaleUploader:
             
             logger.info(f"Generated torrent name: {torrent_name}")
             return torrent_name
-            
         except Exception as e:
             logger.error(f"Failed to generate torrent name: {e}")
-            return naming_context.get('title', 'Unknown')
+            return torrent_data.get('name', 'Unknown')
     
     def generate_description(self, naming_context: Dict[str, Any], torrent_data: Dict[str, Any]) -> str:
         """Generate description using Jinja2 template"""

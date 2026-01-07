@@ -1,0 +1,31 @@
+# Example La Cale API Configuration
+# This shows how to configure the La Cale tracker for uploads
+
+api_configs:
+  default:
+    name: "Default"
+    base_url: ""
+    endpoints:
+      upload: "/api/upload"
+      meta: "/api/meta"
+    torrent_names:
+      movie: "{{ title | title }}.({{ year }}).{% if is_multi %}MULTI.{% endif %}{{ language }}.{{ resolution }}{% if hdr %}.{{ hdr }}{% endif %}.{{ source|default('WEB') }}.{{ video_codec }}.{{ audio_codec }}-{{ team|default('HEAVEN') }}"
+      tvshow: "{{ title | title }}.s{{ season }}{% if episode %}e{{ episode }}{% endif %}.{% if is_multi %}MULTI.{% endif %}{{ language }}.{{ resolution }}.{{ source|default('WEB') }}.{{ video_codec }}.{{ audio_codec }}-{{ team|default('HEAVEN') }}"
+      anime: "{{ title | title }}.s{{ season }}{% if episode %}e{{ episode }}{% endif %}.{% if is_multi %}MULTI.{% endif %}{{ language }}.{{ resolution }}.{{ source|default('WEB') }}.{{ video_codec }}.{{ audio_codec }}-{{ team|default('HEAVEN') }}"
+    
+    # Authentication
+    auth:
+      type: "api_key"  # Uses passkey as API key
+      api_key: "${API_KEY}"  # Set this environment variable
+      api_key_name: "api_key"
+    
+    # Request configuration
+    timeout: 60
+    headers:
+      User-Agent: "qbit2track/1.0"
+    
+    # Rate limiting (La Cale allows 30 requests/minute)
+    retry:
+      max_attempts: 3
+      backoff_factor: 2
+      status_codes: [429, 500, 502, 503, 504]
